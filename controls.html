@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controls</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        .controls-version {
+            display: none;
+        }
+
+        .controls-version.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Версия 1: Тёмная тема + Английский -->
+    <div id="controls-dark-en" class="controls-version">
+        <style>
+            #controls-dark-en body {
+                background-color: #0d375e;
+            }
+            #controls-dark-en .container {
+                position: relative;
+                width: 1323px;
+                height: 758px;
+                background-color: #0d375e;
+            }
+            #controls-dark-en .key {
+                position: absolute;
+                background: linear-gradient(180deg, #3a4d62 0%, #1a2d42 100%);
+                border: 3px solid #5a7a9a;
+                border-radius: 16px;
+                color: #d0e0f0;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: flex-start;
+                padding-top: 12px;
+                box-shadow: 0 8px 16px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.1);
+            }
+            #controls-dark-en .key-label-top {
+                font-size: 22px;
+                color: #c0d8e8;
+                margin-bottom: 2px;
+                font-weight: 500;
+            }
+            #controls-dark-en .key-label-main {
+                font-size: 56px;
+                font-weight: 400;
+                color: #e0e8f0;
+                line-height: 1;
+                margin-top: 0px;
+            }
+            #controls-dark-en .key-number {
+                font-size: 56px;
+                font-weight: 400;
+                color: #e0e8f0;
+                line-height: 1;
+            }
+            #controls-dark-en .key-arrow {
+                font-size: 48px;
+                color: #d0e0f0;
+                font-weight: 100;
+            }
+            #controls-dark-en .dots {
+                position: absolute;
+                color: #c0d8e8;
+                font-size: 32px;
+                letter-spacing: 6px;
+                font-weight: bold;
+            }
+            #controls-dark-en .key-1 { left: 97px; top: 18px; width: 120px; height: 124px; padding-top: 28px; }
+            #controls-dark-en .key-9 { left: 373px; top: 18px; width: 121px; height: 124px; padding-top: 28px; }
+            #controls-dark-en .dots-pos { left: 275px; top: 65px; }
+            #controls-dark-en .key-q { left: 18px; top: 159px; width: 120px; height: 124px; }
+            #controls-dark-en .key-w { left: 159px; top: 159px; width: 120px; height: 124px; }
+            #controls-dark-en .key-e { left: 301px; top: 159px; width: 120px; height: 124px; }
+            #controls-dark-en .key-r { left: 442px; top: 159px; width: 120px; height: 124px; }
+            #controls-dark-en .key-enter {
+                position: absolute;
+                left: 490px;
+                top: 159px;
+                width: 214px;
+                height: 264px;
+                z-index: 2;
+            }
+            #controls-dark-en .enter-svg {
+                width: 100%;
+                height: 100%;
+                filter: drop-shadow(0 8px 16px rgba(0,0,0,0.35));
+            }
+            #controls-dark-en .enter-content {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+            }
+            #controls-dark-en .enter-label-top {
+                position: absolute;
+                top: 15px;
+                right: 37px;
+                font-size: 22px;
+                color: #c0d8e8;
+                font-weight: 500;
+                white-space: nowrap;
+            }
+            #controls-dark-en .enter-block {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                margin-left: 47px;
+                margin-top: 25px;
+            }
+            #controls-dark-en .enter-label-main {
+                font-size: 32px;
+                color: #d0e0f0;
+                font-weight: 500;
+                text-align: center;
+                white-space: nowrap;
+            }
+            #controls-dark-en .enter-arrow {
+                font-size: 32px;
+                color: #d0e0f0;
+                text-align: center;
+                margin-top: 5px;
+            }
+            #controls-dark-en .key-a { left: 63px; top: 300px; width: 121px; height: 123px; }
+            #controls-dark-en .key-s { left: 204px; top: 300px; width: 121px; height: 123px; }
+            #controls-dark-en .key-d { left: 345px; top: 300px; width: 121px; height: 123px; }
+            #controls-dark-en .key-arrow-up { left: 298px; top: 477px; width: 120px; height: 124px; padding-top: 0; justify-content: center; }
+            #controls-dark-en .key-arrow-left { left: 157px; top: 618px; width: 120px; height: 123px; padding-top: 0; justify-content: center; }
+            #controls-dark-en .key-arrow-down { left: 298px; top: 618px; width: 120px; height: 123px; padding-top: 0; justify-content: center; }
+            #controls-dark-en .key-arrow-right { left: 440px; top: 618px; width: 120px; height: 123px; padding-top: 0; justify-content: center; }
+            #controls-dark-en .key-n7 { left: 762px; top: 194px; width: 120px; height: 124px; padding-top: 0; justify-content: center; }
+            #controls-dark-en .key-n8 { left: 903px; top: 194px; width: 120px; height: 124px; padding-top: 0; justify-content: center; }
+            #controls-dark-en .key-n9 { left: 1045px; top: 194px; width: 120px; height: 124px; padding-top: 0; justify-content: center; }
+            #controls-dark-en .key-n4 { left: 762px; top: 334px; width: 120px; height: 125px; padding-top: 0; justify-content: center; }
+            #controls-dark-en .key-n5 { left: 903px; top: 334px; width: 120px; height: 125px; padding-top: 0; justify-content: center; }
+            #controls-dark-en .key-n6 { left: 1045px; top: 334px; width: 120px; height: 125px; padding-top: 0; justify-content: center; }
+            #controls-dark-en .key-n1 { left: 762px; top: 475px; width: 120px; height: 125px; padding-top: 0; justify-content: center; }
+            #controls-dark-en .key-n2 { left: 903px; top: 475px; width: 120px; height: 125px; padding-top: 0; justify-content: center; }
+            #controls-dark-en .key-n3 { left: 1045px; top: 475px; width: 120px; height: 125px; padding-top: 0; justify-content: center; }
+            #controls-dark-en .key-n0 { left: 762px; top: 616px; width: 261px; height: 125px; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; padding-top: 12px; }
+            #controls-dark-en .key-ndot { left: 1045px; top: 617px; width: 120px; height: 124px; padding-top: 12px; }
+            #controls-dark-en .key-plus { left: 1186px; top: 194px; width: 120px; height: 265px; justify-content: flex-start; padding-top: 12px; }
+            #controls-dark-en .key-enter-numpad { left: 1186px; top: 476px; width: 120px; height: 265px; justify-content: flex-start; padding-top: 12px; }
+            #controls-dark-en .numpad-label-top { font-size: 22px; color: #c0d8e8; margin-bottom: 8px; font-weight: 500; }
+            #controls-dark-en .numpad-label-enter { font-size: 32px; color: #d0e0f0; margin-bottom: 0px; font-weight: 500; margin-top: 60px; }
+            #controls-dark-en .numpad-zero-label { font-size: 22px; color: #c0d8e8; margin-bottom: 8px; font-weight: 500; }
+            #controls-dark-en .numpad-zero-main { font-size: 56px; font-weight: 400; color: #e0e8f0; line-height: 1; }
+            #controls-dark-en .numpad-dot-label { font-size: 22px; color: #c0d8e8; margin-bottom: 8px; font-weight: 500; }
+            #controls-dark-en .numpad-dot-main { font-size: 56px; font-weight: 400; color: #e0e8f0; }
+            #controls-dark-en .plus-sign { font-size: 56px; font-weight: 400; color: #e0e8f0; margin-top: 35px; }
+            #controls-dark-en .enter-arrow-numpad { font-size: 32px; color: #d0e0f0; margin-top: 5px; }
+            #controls-dark-en .numpad-main { font-size: 56px; font-weight: 400; color: #e0e8f0; }
+        </style>
+        <div class="container">
+            <div class="key key-1"><span class="key-number">1</span></div>
+            <div class="dots dots-pos">...</div>
+            <div class="key key-9"><span class="key-number">9</span></div>
+            <div class="key key-q"><span class="key-label-top">Notes</span><span class="key-label-main">Q</span></div>
+            <div class="key key-w"><span class="key-label-top">Up</span><span class="key-label-main">W</span></div>
+            <div class="key key-e"><span class="key-label-top">Cancel</span><span class="key-label-main">E</span></div>
+            <div class="key key-r"><span class="key-label-top">Eraser</span><span class="key-label-main">R</span></div>
+            <div class="key-enter">
+                <svg class="enter-svg" viewBox="0 0 214 264" preserveAspectRatio="none">
+                    <defs><linearGradient id="enterGradDark" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#3a4d62"/><stop offset="100%" style="stop-color:#1a2d42"/></linearGradient></defs>
+                    <path d="M 95.5 124.5 L 95.5 17.5 Q 95.5 1.5 111.5 1.5 L 199.5 1.5 Q 212.5 1.5 212.5 17.5 L 212.5 249.5 Q 212.5 264.5 199.5 264.5 L 17.5 264.5 Q 1.5 264.5 1.5 249.5 L 1.5 160.5 Q 1.5 144.5 17.5 144.5 L 76.5 144.5 Q 95.5 144.5 95.5 124.5 Z" fill="url(#enterGradDark)" stroke="#5a7a9a" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+                    <line x1="7.5" y1="261.5" x2="209.5" y2="261.5" stroke="#5a7a9a" stroke-width="2" vector-effect="non-scaling-stroke"/>
+                    <line x1="10.5" y1="263" x2="206.5" y2="263" stroke="#5a7a9a" stroke-width="2" vector-effect="non-scaling-stroke"/>
+                    <line x1="17.5" y1="264.5" x2="199.5" y2="264.5" stroke="#5a7a9a" stroke-width="2" vector-effect="non-scaling-stroke"/>
+                    <line x1="17.5" y1="266" x2="199.5" y2="266" stroke="#5a7a9a" stroke-width="2" vector-effect="non-scaling-stroke"/>
+                </svg>
+                <div class="enter-content"><span class="enter-label-top">Hint</span><div class="enter-block"><div class="enter-label-main">Enter</div><div class="enter-arrow">↵</div></div></div>
+            </div>
+            <div class="key key-a"><span class="key-label-top">Left</span><span class="key-label-main">A</span></div>
+            <div class="key key-s"><span class="key-label-top">Down</span><span class="key-label-main">S</span></div>
+            <div class="key key-d"><span class="key-label-top">Right</span><span class="key-label-main">D</span></div>
+            <div class="key key-arrow-up"><span class="key-arrow">↑</span></div>
+            <div class="key key-arrow-left"><span class="key-arrow">←</span></div>
+            <div class="key key-arrow-down"><span class="key-arrow">↓</span></div>
+            <div class="key key-arrow-right"><span class="key-arrow">→</span></div>
+            <div class="key key-n7"><span class="numpad-main">7</span></div>
+            <div class="key key-n8"><span class="numpad-main">8</span></div>
+            <div class="key key-n9"><span class="numpad-main">9</span></div>
+            <div class="key key-n4"><span class="numpad-main">4</span></div>
+            <div class="key key-n5"><span class="numpad-main">5</span></div>
+            <div class="key key-n6"><span class="numpad-main">6</span></div>
+            <div class="key key-n1"><span class="numpad-main">1</span></div>
+            <div class="key key-n2"><span class="numpad-main">2</span></div>
+            <div class="key key-n3"><span class="numpad-main">3</span></div>
+            <div class="key key-n0"><span class="numpad-zero-label">Cancel</span><span class="numpad-zero-main">0</span></div>
+            <div class="key key-ndot"><span class="numpad-dot-label">Eraser</span><span class="numpad-dot-main">·</span></div>
+            <div class="key key-plus"><span class="numpad-label-top">Notes</span><span class="plus-sign">+</span></div>
+            <div class="key key-enter-numpad"><span class="numpad-label-top">Hint</span><span class="numpad-label-enter">Enter</span><span class="enter-arrow-numpad">↵</span></div>
+        </div>
+    </div>
+
+    <!-- Версия 2: Тёмная тема + Русский -->
+    <div id="controls-dark-ru" class="controls-version">
+        <style>
+            #controls-dark-ru body {
+                background-color: #0d375e;
+            }
+            #controls-dark-ru .container {
+                position: relative;
+                width: 1323px;
+                height: 758px;
+                background-color: #0d375e;
+            }
+            #controls-dark-ru .key {
+                position: absolute;
+                background: linear-gradient(180deg, #3a4d62 0%, #1a2d42 100%);
+                border: 3px solid #5a7a9a;
+                border-radius: 16px;
+                color: #d0e0f0;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: flex-start;
+                padding-top: 12px;
+                box-shadow: 0 8px 16px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.1);
+            }
+            #controls-dark-ru .key-label-top {
+                font-size: 22px;
+                color: #c0d8e8;
+                margin-bottom: 2px;
+                font-weight: 500;
+            }
+            #controls-dark-ru .key-label-main {
+                font-size: 56px;
+                font-weight: 400;
+                color: #e0e8f0;
+                line-height: 1;
+                margin-top: 0px;
+            }
+            #controls-dark-ru .key-number {
+                font-size: 56px;
+                font-weight: 400;
+                color: #e0e8f0;
+                line-height: 1;
+            }
+            #controls-dark-ru .key-arrow {
+                font-size: 48px;
+                color: #d0e0f0;
+                font-weight: 100;
+            }
+            #controls-dark-ru .dots {
+                position: absolute;
+                color: #c0d8e8;
+                font-size: 32px;
+                letter-spacing: 6px;
+                font-weight: bold;
+            }
+            #controls-dark-ru .key-1 { left: 97px; top: 18px; width: 120px; height: 124px; padding-top: 28px; }
+            #controls-dark-ru .key-9 { left: 373px; top: 18px; width: 121px; height: 124px; padding-top: 28px; }
+            #controls-dark-ru .dots-pos { left: 275px; top: 65px; }
+            #controls-dark-ru .key-q { left: 18px; top: 159px; width: 120px; height: 124px; }
+            #controls-dark-ru .key-w { left: 159px; top: 159px; width: 120px; height: 124px; }
+            #controls-dark-ru .key-e { left: 301px; top: 159px; width: 120px; height: 124px; }
+            #controls-dark-ru .key-r { left: 442px; top: 159px; width: 120px; height: 124px; }
+            #controls-dark-ru .key-enter {
+                position: absolute;
+                left: 487px;
+                top: 159px;
+                width: 225px;
+                height: 264px;
+                z-index: 2;
+            }
+            #controls-dark-ru .enter-svg {
+                width: 100%;
+                height: 100%;
+                filter: drop-shadow(0 8px 16px rgba(0,0,0,0.35));
+            }
+            #controls-dark-ru .enter-content {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+            }
+            #controls-dark-ru .enter-label-top {
+                position: absolute;
+                top: 15px;
+                right: 15px;
+                font-size: 22px;
+                color: #c0d8e8;
+                font-weight: 500;
+            }
+            #controls-dark-ru .enter-block {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                margin-left: 50px;
+                margin-top: 20px;
+            }
+            #controls-dark-ru .enter-label-main {
+                font-size: 32px;
+                color: #d0e0f0;
+                font-weight: 500;
+                text-align: center;
+                white-space: nowrap;
+            }
+            #controls-dark-ru .enter-arrow {
+                font-size: 32px;
+                color: #d0e0f0;
+                text-align: center;
+                margin-top: 5px;
+            }
+            #controls-dark-ru .key-a { left: 63px; top: 300px; width: 121px; height: 123px; }
+            #controls-dark-ru .key-s { left: 204px; top: 300px; width: 121px; height: 123px; }
+            #controls-dark-ru .key-d { left: 345px; top: 300px; width: 121px; height: 123px; }
+            #controls-dark-ru .key-arrow-up { left: 298px; top: 477px; width: 120px; height: 124px; padding-top: 0; justify-content: center; }
+            #controls-dark-ru .key-arrow-left { left: 157px; top: 618px; width: 120px; height: 123px; padding-top: 0; justify-content: center; }
+            #controls-dark-ru .key-arrow-down { left: 298px; top: 618px; width: 120px; height: 123px; padding-top: 0; justify-content: center; }
+            #controls-dark-ru .key-arrow-right { left: 440px; top: 618px; width: 120px; height: 123px; padding-top: 0; justify-content: center; }
+            #controls-dark-ru .key-n7 { left: 762px; top: 194px; width: 120px; height: 124px; padding-top: 0; justify-content: center; }
+            #controls-dark-ru .key-n8 { left: 903px; top: 194px; width: 120px; height: 124px; padding-top: 0; justify-content: center; }
+            #controls-dark-ru .key-n9 { left: 1045px; top: 194px; width: 120px; height: 124px; padding-top: 0; justify-content: center; }
+            #controls-dark-ru .key-n4 { left: 762px; top: 334px; width: 120px; height: 125px; padding-top: 0; justify-content: center; }
+            #controls-dark-ru .key-n5 { left: 903px; top: 334px; width: 120px; height: 125px; padding-top: 0; justify-content: center; }
+            #controls-dark-ru .key-n6 { left: 1045px; top: 334px; width: 120px; height: 125px; padding-top: 0; justify-content: center; }
+            #controls-dark-ru .key-n1 { left: 762px; top: 475px; width: 120px; height: 125px; padding-top: 0; justify-content: center; }
+            #controls-dark-ru .key-n2 { left: 903px; top: 475px; width: 120px; height: 125px; padding-top: 0; justify-content: center; }
+            #controls-dark-ru .key-n3 { left: 1045px; top: 475px; width: 120px; height: 125px; padding-top: 0; justify-content: center; }
+            #controls-dark-ru .key-n0 { left: 762px; top: 616px; width: 261px; height: 125px; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; padding-top: 12px; }
+            #controls-dark-ru .key-ndot { left: 1045px; top: 617px; width: 120px; height: 124px; padding-top: 12px; }
+            #controls-dark-ru .key-plus { left: 1186px; top: 194px; width: 120px; height: 265px; justify-content: flex-start; padding-top: 12px; }
+            #controls-dark-ru .key-enter-numpad { left: 1186px; top: 476px; width: 120px; height: 265px; justify-content: flex-start; padding-top: 12px; }
+            #controls-dark-ru .numpad-label-top { font-size: 22px; color: #c0d8e8; margin-bottom: 8px; font-weight: 500; }
+            #controls-dark-ru .numpad-label-enter { font-size: 32px; color: #d0e0f0; margin-bottom: 0px; font-weight: 500; margin-top: 60px; }
+            #controls-dark-ru .numpad-zero-label { font-size: 22px; color: #c0d8e8; margin-bottom: 8px; font-weight: 500; }
+            #controls-dark-ru .numpad-zero-main { font-size: 56px; font-weight: 400; color: #e0e8f0; line-height: 1; }
+            #controls-dark-ru .numpad-dot-label { font-size: 22px; color: #c0d8e8; margin-bottom: 8px; font-weight: 500; }
+            #controls-dark-ru .numpad-dot-main { font-size: 56px; font-weight: 400; color: #e0e8f0; }
+            #controls-dark-ru .plus-sign { font-size: 56px; font-weight: 400; color: #e0e8f0; margin-top: 50px; }
+            #controls-dark-ru .enter-arrow-numpad { font-size: 32px; color: #d0e0f0; margin-top: 5px; }
+            #controls-dark-ru .numpad-main { font-size: 56px; font-weight: 400; color: #e0e8f0; }
+        </style>
+        <div class="container">
+            <div class="key key-1"><span class="key-number">1</span></div>
+            <div class="dots dots-pos">...</div>
+            <div class="key key-9"><span class="key-number">9</span></div>
+            <div class="key key-q"><span class="key-label-top">Заметки</span><span class="key-label-main">Q</span></div>
+            <div class="key key-w"><span class="key-label-top">Вверх</span><span class="key-label-main">W</span></div>
+            <div class="key key-e"><span class="key-label-top">Отмена</span><span class="key-label-main">E</span></div>
+            <div class="key key-r"><span class="key-label-top">Ластик</span><span class="key-label-main">R</span></div>
+            <div class="key-enter">
+                <svg class="enter-svg" viewBox="0 0 225 264" preserveAspectRatio="none">
+                    <defs><linearGradient id="enterGradDarkRU" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#3a4d62"/><stop offset="100%" style="stop-color:#1a2d42"/></linearGradient></defs>
+                    <path d="M 105 125 L 105 16 Q 105 0 121 0 L 209 0 Q 225 0 225 16 L 225 248 Q 225 264 209 264 L 16 264 Q 0 264 0 248 L 0 157 Q 0 141 16 141 L 89 141 Q 105 141 105 125 Z" fill="url(#enterGradDarkRU)" stroke="#5a7a9a" stroke-width="3"/>
+                </svg>
+                <div class="enter-content"><span class="enter-label-top">Помощь</span><div class="enter-block"><div class="enter-label-main">Enter</div><div class="enter-arrow">↵</div></div></div>
+            </div>
+            <div class="key key-a"><span class="key-label-top">Влево</span><span class="key-label-main">A</span></div>
+            <div class="key key-s"><span class="key-label-top">Вниз</span><span class="key-label-main">S</span></div>
+            <div class="key key-d"><span class="key-label-top">Вправо</span><span class="key-label-main">D</span></div>
+            <div class="key key-arrow-up"><span class="key-arrow">↑</span></div>
+            <div class="key key-arrow-left"><span class="key-arrow">←</span></div>
+            <div class="key key-arrow-down"><span class="key-arrow">↓</span></div>
+            <div class="key key-arrow-right"><span class="key-arrow">→</span></div>
+            <div class="key key-n7"><span class="numpad-main">7</span></div>
+            <div class="key key-n8"><span class="numpad-main">8</span></div>
+            <div class="key key-n9"><span class="numpad-main">9</span></div>
+            <div class="key key-n4"><span class="numpad-main">4</span></div>
+            <div class="key key-n5"><span class="numpad-main">5</span></div>
+            <div class="key key-n6"><span class="numpad-main">6</span></div>
+            <div class="key key-n1"><span class="numpad-main">1</span></div>
+            <div class="key key-n2"><span class="numpad-main">2</span></div>
+            <div class="key key-n3"><span class="numpad-main">3</span></div>
+            <div class="key key-n0"><span class="numpad-zero-label">Отмена</span><span class="numpad-zero-main">0</span></div>
+            <div class="key key-ndot"><span class="numpad-dot-label">Ластик</span><span class="numpad-dot-main">·</span></div>
+            <div class="key key-plus"><span class="numpad-label-top">Заметки</span><span class="plus-sign">+</span></div>
+            <div class="key key-enter-numpad"><span class="numpad-label-top">Помощь</span><span class="numpad-label-enter">Enter</span><span class="enter-arrow-numpad">↵</span></div>
+        </div>
+    </div>
+
+    <!-- Версия 3: Светлая тема + Английский -->
+    <div id="controls-light-en" class="controls-version">
+        <style>
+            #controls-light-en body {
+                background-color: #e8edf2;
+            }
+            #controls-light-en .container {
+                position: relative;
+                width: 1323px;
+                height: 758px;
+                background-color: #e8edf2;
+            }
+            #controls-light-en .key {
+                position: absolute;
+                background: linear-gradient(180deg, #f5f7fa 0%, #dce5ed 100%);
+                border: 3px solid #9aaebf;
+                border-radius: 16px;
+                color: #2c3e50;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: flex-start;
+                padding-top: 12px;
+                box-shadow: 0 8px 16px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.6);
+            }
+            #controls-light-en .key-label-top {
+                font-size: 22px;
+                color: #2c3e50;
+                margin-bottom: 2px;
+                font-weight: 500;
+            }
+            #controls-light-en .key-label-main {
+                font-size: 56px;
+                font-weight: 400;
+                color: #2c3e50;
+                line-height: 1;
+                margin-top: 0px;
+            }
+            #controls-light-en .key-number {
+                font-size: 56px;
+                font-weight: 400;
+                color: #2c3e50;
+                line-height: 1;
+            }
+            #controls-light-en .key-arrow {
+                font-size: 48px;
+                color: #2c3e50;
+                font-weight: 100;
+            }
+            #controls-light-en .dots {
+                position: absolute;
+                color: #7f8c8d;
+                font-size: 32px;
+                letter-spacing: 6px;
+                font-weight: bold;
+            }
+            #controls-light-en .key-1 { left: 97px; top: 18px; width: 120px; height: 124px; padding-top: 28px; }
+            #controls-light-en .key-9 { left: 373px; top: 18px; width: 121px; height: 124px; padding-top: 28px; }
+            #controls-light-en .dots-pos { left: 275px; top: 65px; }
+            #controls-light-en .key-q { left: 18px; top: 159px; width: 120px; height: 124px; }
+            #controls-light-en .key-w { left: 159px; top: 159px; width: 120px; height: 124px; }
+            #controls-light-en .key-e { left: 301px; top: 159px; width: 120px; height: 124px; }
+            #controls-light-en .key-r { left: 442px; top: 159px; width: 120px; height: 124px; }
+            #controls-light-en .key-enter {
+                position: absolute;
+                left: 490px;
+                top: 159px;
+                width: 214px;
+                height: 264px;
+                z-index: 2;
+            }
+            #controls-light-en .enter-svg {
+                width: 100%;
+                height: 100%;
+                filter: drop-shadow(0 8px 16px rgba(0,0,0,0.08));
+            }
+            #controls-light-en .enter-content {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+            }
+            #controls-light-en .enter-label-top {
+                position: absolute;
+                top: 15px;
+                right: 37px;
+                font-size: 22px;
+                color: #2c3e50;
+                font-weight: 500;
+                white-space: nowrap;
+            }
+            #controls-light-en .enter-block {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                margin-left: 47px;
+                margin-top: 25px;
+            }
+            #controls-light-en .enter-label-main {
+                font-size: 32px;
+                color: #2c3e50;
+                font-weight: 500;
+                text-align: center;
+                white-space: nowrap;
+            }
+            #controls-light-en .enter-arrow {
+                font-size: 32px;
+                color: #2c3e50;
+                text-align: center;
+                margin-top: 5px;
+            }
+            #controls-light-en .key-a { left: 63px; top: 300px; width: 121px; height: 123px; }
+            #controls-light-en .key-s { left: 204px; top: 300px; width: 121px; height: 123px; }
+            #controls-light-en .key-d { left: 345px; top: 300px; width: 121px; height: 123px; }
+            #controls-light-en .key-arrow-up { left: 298px; top: 477px; width: 120px; height: 124px; padding-top: 0; justify-content: center; }
+            #controls-light-en .key-arrow-left { left: 157px; top: 618px; width: 120px; height: 123px; padding-top: 0; justify-content: center; }
+            #controls-light-en .key-arrow-down { left: 298px; top: 618px; width: 120px; height: 123px; padding-top: 0; justify-content: center; }
+            #controls-light-en .key-arrow-right { left: 440px; top: 618px; width: 120px; height: 123px; padding-top: 0; justify-content: center; }
+            #controls-light-en .key-n7 { left: 762px; top: 194px; width: 120px; height: 124px; padding-top: 0; justify-content: center; }
+            #controls-light-en .key-n8 { left: 903px; top: 194px; width: 120px; height: 124px; padding-top: 0; justify-content: center; }
+            #controls-light-en .key-n9 { left: 1045px; top: 194px; width: 120px; height: 124px; padding-top: 0; justify-content: center; }
+            #controls-light-en .key-n4 { left: 762px; top: 334px; width: 120px; height: 125px; padding-top: 0; justify-content: center; }
+            #controls-light-en .key-n5 { left: 903px; top: 334px; width: 120px; height: 125px; padding-top: 0; justify-content: center; }
+            #controls-light-en .key-n6 { left: 1045px; top: 334px; width: 120px; height: 125px; padding-top: 0; justify-content: center; }
+            #controls-light-en .key-n1 { left: 762px; top: 475px; width: 120px; height: 125px; padding-top: 0; justify-content: center; }
+            #controls-light-en .key-n2 { left: 903px; top: 475px; width: 120px; height: 125px; padding-top: 0; justify-content: center; }
+            #controls-light-en .key-n3 { left: 1045px; top: 475px; width: 120px; height: 125px; padding-top: 0; justify-content: center; }
+            #controls-light-en .key-n0 { left: 762px; top: 616px; width: 261px; height: 125px; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; padding-top: 12px; }
+            #controls-light-en .key-ndot { left: 1045px; top: 617px; width: 120px; height: 124px; padding-top: 12px; }
+            #controls-light-en .key-plus { left: 1186px; top: 194px; width: 120px; height: 265px; justify-content: flex-start; padding-top: 12px; }
+            #controls-light-en .key-enter-numpad { left: 1186px; top: 476px; width: 120px; height: 265px; justify-content: flex-start; padding-top: 12px; }
+            #controls-light-en .numpad-label-top { font-size: 22px; color: #2c3e50; margin-bottom: 8px; font-weight: 500; }
+            #controls-light-en .numpad-label-enter { font-size: 32px; color: #2c3e50; margin-bottom: 0px; font-weight: 500; margin-top: 60px; }
+            #controls-light-en .numpad-zero-label { font-size: 22px; color: #2c3e50; margin-bottom: 8px; font-weight: 500; }
+            #controls-light-en .numpad-zero-main { font-size: 56px; font-weight: 400; color: #2c3e50; line-height: 1; }
+            #controls-light-en .numpad-dot-label { font-size: 22px; color: #2c3e50; margin-bottom: 8px; font-weight: 500; }
+            #controls-light-en .numpad-dot-main { font-size: 56px; font-weight: 400; color: #2c3e50; }
+            #controls-light-en .plus-sign { font-size: 56px; font-weight: 400; color: #2c3e50; margin-top: 35px; }
+            #controls-light-en .enter-arrow-numpad { font-size: 32px; color: #2c3e50; margin-top: 5px; }
+            #controls-light-en .numpad-main { font-size: 56px; font-weight: 400; color: #2c3e50; }
+        </style>
+        <div class="container">
+            <div class="key key-1"><span class="key-number">1</span></div>
+            <div class="dots dots-pos">...</div>
+            <div class="key key-9"><span class="key-number">9</span></div>
+            <div class="key key-q"><span class="key-label-top">Notes</span><span class="key-label-main">Q</span></div>
+            <div class="key key-w"><span class="key-label-top">Up</span><span class="key-label-main">W</span></div>
+            <div class="key key-e"><span class="key-label-top">Cancel</span><span class="key-label-main">E</span></div>
+            <div class="key key-r"><span class="key-label-top">Eraser</span><span class="key-label-main">R</span></div>
+            <div class="key-enter">
+                <svg class="enter-svg" viewBox="0 0 214 264" preserveAspectRatio="none">
+                    <defs><linearGradient id="enterGradLight" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#f5f7fa"/><stop offset="100%" style="stop-color:#dce5ed"/></linearGradient></defs>
+                    <path d="M 95.5 124.5 L 95.5 17.5 Q 95.5 1.5 111.5 1.5 L 199.5 1.5 Q 212.5 1.5 212.5 17.5 L 212.5 249.5 Q 212.5 264.5 199.5 264.5 L 17.5 264.5 Q 1.5 264.5 1.5 249.5 L 1.5 160.5 Q 1.5 144.5 17.5 144.5 L 76.5 144.5 Q 95.5 144.5 95.5 124.5 Z" fill="url(#enterGradLight)" stroke="#9aaebf" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+                    <line x1="7.5" y1="261.5" x2="209.5" y2="261.5" stroke="#9aaebf" stroke-width="2" vector-effect="non-scaling-stroke"/>
+                    <line x1="10.5" y1="263" x2="206.5" y2="263" stroke="#9aaebf" stroke-width="2" vector-effect="non-scaling-stroke"/>
+                    <line x1="17.5" y1="264.5" x2="199.5" y2="264.5" stroke="#9aaebf" stroke-width="2" vector-effect="non-scaling-stroke"/>
+                    <line x1="17.5" y1="266" x2="199.5" y2="266" stroke="#9aaebf" stroke-width="2" vector-effect="non-scaling-stroke"/>
+                </svg>
+                <div class="enter-content"><span class="enter-label-top">Hint</span><div class="enter-block"><div class="enter-label-main">Enter</div><div class="enter-arrow">↵</div></div></div>
+            </div>
+            <div class="key key-a"><span class="key-label-top">Left</span><span class="key-label-main">A</span></div>
+            <div class="key key-s"><span class="key-label-top">Down</span><span class="key-label-main">S</span></div>
+            <div class="key key-d"><span class="key-label-top">Right</span><span class="key-label-main">D</span></div>
+            <div class="key key-arrow-up"><span class="key-arrow">↑</span></div>
+            <div class="key key-arrow-left"><span class="key-arrow">←</span></div>
+            <div class="key key-arrow-down"><span class="key-arrow">↓</span></div>
+            <div class="key key-arrow-right"><span class="key-arrow">→</span></div>
+            <div class="key key-n7"><span class="numpad-main">7</span></div>
+            <div class="key key-n8"><span class="numpad-main">8</span></div>
+            <div class="key key-n9"><span class="numpad-main">9</span></div>
+            <div class="key key-n4"><span class="numpad-main">4</span></div>
+            <div class="key key-n5"><span class="numpad-main">5</span></div>
+            <div class="key key-n6"><span class="numpad-main">6</span></div>
+            <div class="key key-n1"><span class="numpad-main">1</span></div>
+            <div class="key key-n2"><span class="numpad-main">2</span></div>
+            <div class="key key-n3"><span class="numpad-main">3</span></div>
+            <div class="key key-n0"><span class="numpad-zero-label">Cancel</span><span class="numpad-zero-main">0</span></div>
+            <div class="key key-ndot"><span class="numpad-dot-label">Eraser</span><span class="numpad-dot-main">·</span></div>
+            <div class="key key-plus"><span class="numpad-label-top">Notes</span><span class="plus-sign">+</span></div>
+            <div class="key key-enter-numpad"><span class="numpad-label-top">Hint</span><span class="numpad-label-enter">Enter</span><span class="enter-arrow-numpad">↵</span></div>
+        </div>
+    </div>
+
+    <!-- Версия 4: Светлая тема + Русский -->
+    <div id="controls-light-ru" class="controls-version">
+        <style>
+            #controls-light-ru body {
+                background-color: #e8edf2;
+            }
+            #controls-light-ru .container {
+                position: relative;
+                width: 1323px;
+                height: 758px;
+                background-color: #e8edf2;
+            }
+            #controls-light-ru .key {
+                position: absolute;
+                background: linear-gradient(180deg, #f5f7fa 0%, #dce5ed 100%);
+                border: 3px solid #9aaebf;
+                border-radius: 16px;
+                color: #2c3e50;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: flex-start;
+                padding-top: 12px;
+                box-shadow: 0 8px 16px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.6);
+            }
+            #controls-light-ru .key-label-top {
+                font-size: 22px;
+                color: #2c3e50;
+                margin-bottom: 2px;
+                font-weight: 500;
+            }
+            #controls-light-ru .key-label-main {
+                font-size: 56px;
+                font-weight: 400;
+                color: #2c3e50;
+                line-height: 1;
+                margin-top: 0px;
+            }
+            #controls-light-ru .key-number {
+                font-size: 56px;
+                font-weight: 400;
+                color: #2c3e50;
+                line-height: 1;
+            }
+            #controls-light-ru .key-arrow {
+                font-size: 48px;
+                color: #2c3e50;
+                font-weight: 100;
+            }
+            #controls-light-ru .dots {
+                position: absolute;
+                color: #7f8c8d;
+                font-size: 32px;
+                letter-spacing: 6px;
+                font-weight: bold;
+            }
+            #controls-light-ru .key-1 { left: 97px; top: 18px; width: 120px; height: 124px; padding-top: 28px; }
+            #controls-light-ru .key-9 { left: 373px; top: 18px; width: 121px; height: 124px; padding-top: 28px; }
+            #controls-light-ru .dots-pos { left: 275px; top: 65px; }
+            #controls-light-ru .key-q { left: 18px; top: 159px; width: 120px; height: 124px; }
+            #controls-light-ru .key-w { left: 159px; top: 159px; width: 120px; height: 124px; }
+            #controls-light-ru .key-e { left: 301px; top: 159px; width: 120px; height: 124px; }
+            #controls-light-ru .key-r { left: 442px; top: 159px; width: 120px; height: 124px; }
+            #controls-light-ru .key-enter {
+                position: absolute;
+                left: 490px;
+                top: 159px;
+                width: 214px;
+                height: 264px;
+                z-index: 2;
+            }
+            #controls-light-ru .enter-svg {
+                width: 100%;
+                height: 100%;
+                filter: drop-shadow(0 8px 16px rgba(0,0,0,0.08));
+            }
+            #controls-light-ru .enter-content {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+            }
+            #controls-light-ru .enter-label-top {
+                position: absolute;
+                top: 13px;
+                right: 15px;
+                font-size: 22px;
+                color: #2c3e50;
+                font-weight: 500;
+                white-space: nowrap;
+            }
+            #controls-light-ru .enter-block {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                margin-left: 47px;
+                margin-top: 25px;
+            }
+            #controls-light-ru .enter-label-main {
+                font-size: 32px;
+                color: #2c3e50;
+                font-weight: 500;
+                text-align: center;
+                white-space: nowrap;
+            }
+            #controls-light-ru .enter-arrow {
+                font-size: 32px;
+                color: #2c3e50;
+                text-align: center;
+                margin-top: 5px;
+            }
+            #controls-light-ru .key-a { left: 63px; top: 300px; width: 121px; height: 123px; }
+            #controls-light-ru .key-s { left: 204px; top: 300px; width: 121px; height: 123px; }
+            #controls-light-ru .key-d { left: 345px; top: 300px; width: 121px; height: 123px; }
+            #controls-light-ru .key-arrow-up { left: 298px; top: 477px; width: 120px; height: 124px; padding-top: 0; justify-content: center; }
+            #controls-light-ru .key-arrow-left { left: 157px; top: 618px; width: 120px; height: 123px; padding-top: 0; justify-content: center; }
+            #controls-light-ru .key-arrow-down { left: 298px; top: 618px; width: 120px; height: 123px; padding-top: 0; justify-content: center; }
+            #controls-light-ru .key-arrow-right { left: 440px; top: 618px; width: 120px; height: 123px; padding-top: 0; justify-content: center; }
+            #controls-light-ru .key-n7 { left: 762px; top: 194px; width: 120px; height: 124px; padding-top: 0; justify-content: center; }
+            #controls-light-ru .key-n8 { left: 903px; top: 194px; width: 120px; height: 124px; padding-top: 0; justify-content: center; }
+            #controls-light-ru .key-n9 { left: 1045px; top: 194px; width: 120px; height: 124px; padding-top: 0; justify-content: center; }
+            #controls-light-ru .key-n4 { left: 762px; top: 334px; width: 120px; height: 125px; padding-top: 0; justify-content: center; }
+            #controls-light-ru .key-n5 { left: 903px; top: 334px; width: 120px; height: 125px; padding-top: 0; justify-content: center; }
+            #controls-light-ru .key-n6 { left: 1045px; top: 334px; width: 120px; height: 125px; padding-top: 0; justify-content: center; }
+            #controls-light-ru .key-n1 { left: 762px; top: 475px; width: 120px; height: 125px; padding-top: 0; justify-content: center; }
+            #controls-light-ru .key-n2 { left: 903px; top: 475px; width: 120px; height: 125px; padding-top: 0; justify-content: center; }
+            #controls-light-ru .key-n3 { left: 1045px; top: 475px; width: 120px; height: 125px; padding-top: 0; justify-content: center; }
+            #controls-light-ru .key-n0 { left: 762px; top: 616px; width: 261px; height: 125px; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; padding-top: 12px; }
+            #controls-light-ru .key-ndot { left: 1045px; top: 617px; width: 120px; height: 124px; padding-top: 12px; }
+            #controls-light-ru .key-plus { left: 1186px; top: 194px; width: 120px; height: 265px; justify-content: flex-start; padding-top: 12px; }
+            #controls-light-ru .key-enter-numpad { left: 1186px; top: 476px; width: 120px; height: 265px; justify-content: flex-start; padding-top: 12px; }
+            #controls-light-ru .numpad-label-top { font-size: 22px; color: #2c3e50; margin-bottom: 8px; font-weight: 500; }
+            #controls-light-ru .numpad-label-enter { font-size: 32px; color: #2c3e50; margin-bottom: 0px; font-weight: 500; margin-top: 60px; }
+            #controls-light-ru .numpad-zero-label { font-size: 22px; color: #2c3e50; margin-bottom: 8px; font-weight: 500; }
+            #controls-light-ru .numpad-zero-main { font-size: 56px; font-weight: 400; color: #2c3e50; line-height: 1; }
+            #controls-light-ru .numpad-dot-label { font-size: 22px; color: #2c3e50; margin-bottom: 8px; font-weight: 500; }
+            #controls-light-ru .numpad-dot-main { font-size: 56px; font-weight: 400; color: #2c3e50; }
+            #controls-light-ru .plus-sign { font-size: 56px; font-weight: 400; color: #2c3e50; margin-top: 35px; }
+            #controls-light-ru .enter-arrow-numpad { font-size: 32px; color: #2c3e50; margin-top: 5px; }
+            #controls-light-ru .numpad-main { font-size: 56px; font-weight: 400; color: #2c3e50; }
+        </style>
+        <div class="container">
+            <div class="key key-1"><span class="key-number">1</span></div>
+            <div class="dots dots-pos">...</div>
+            <div class="key key-9"><span class="key-number">9</span></div>
+            <div class="key key-q"><span class="key-label-top">Заметки</span><span class="key-label-main">Q</span></div>
+            <div class="key key-w"><span class="key-label-top">Вверх</span><span class="key-label-main">W</span></div>
+            <div class="key key-e"><span class="key-label-top">Отмена</span><span class="key-label-main">E</span></div>
+            <div class="key key-r"><span class="key-label-top">Ластик</span><span class="key-label-main">R</span></div>
+            <div class="key-enter">
+                <svg class="enter-svg" viewBox="0 0 214 264" preserveAspectRatio="none">
+                    <defs><linearGradient id="enterGradLightRU" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#f5f7fa"/><stop offset="100%" style="stop-color:#dce5ed"/></linearGradient></defs>
+                    <path d="M 95.5 124.5 L 95.5 17.5 Q 95.5 1.5 111.5 1.5 L 199.5 1.5 Q 212.5 1.5 212.5 17.5 L 212.5 249.5 Q 212.5 264.5 199.5 264.5 L 17.5 264.5 Q 1.5 264.5 1.5 249.5 L 1.5 160.5 Q 1.5 144.5 17.5 144.5 L 76.5 144.5 Q 95.5 144.5 95.5 124.5 Z" fill="url(#enterGradLightRU)" stroke="#9aaebf" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+                    <line x1="7.5" y1="261.5" x2="209.5" y2="261.5" stroke="#9aaebf" stroke-width="2" vector-effect="non-scaling-stroke"/>
+                    <line x1="10.5" y1="263" x2="206.5" y2="263" stroke="#9aaebf" stroke-width="2" vector-effect="non-scaling-stroke"/>
+                    <line x1="17.5" y1="264.5" x2="199.5" y2="264.5" stroke="#9aaebf" stroke-width="2" vector-effect="non-scaling-stroke"/>
+                    <line x1="17.5" y1="266" x2="199.5" y2="266" stroke="#9aaebf" stroke-width="2" vector-effect="non-scaling-stroke"/>
+                </svg>
+                <div class="enter-content"><span class="enter-label-top">Помощь</span><div class="enter-block"><div class="enter-label-main">Enter</div><div class="enter-arrow">↵</div></div></div>
+            </div>
+            <div class="key key-a"><span class="key-label-top">Влево</span><span class="key-label-main">A</span></div>
+            <div class="key key-s"><span class="key-label-top">Вниз</span><span class="key-label-main">S</span></div>
+            <div class="key key-d"><span class="key-label-top">Вправо</span><span class="key-label-main">D</span></div>
+            <div class="key key-arrow-up"><span class="key-arrow">↑</span></div>
+            <div class="key key-arrow-left"><span class="key-arrow">←</span></div>
+            <div class="key key-arrow-down"><span class="key-arrow">↓</span></div>
+            <div class="key key-arrow-right"><span class="key-arrow">→</span></div>
+            <div class="key key-n7"><span class="numpad-main">7</span></div>
+            <div class="key key-n8"><span class="numpad-main">8</span></div>
+            <div class="key key-n9"><span class="numpad-main">9</span></div>
+            <div class="key key-n4"><span class="numpad-main">4</span></div>
+            <div class="key key-n5"><span class="numpad-main">5</span></div>
+            <div class="key key-n6"><span class="numpad-main">6</span></div>
+            <div class="key key-n1"><span class="numpad-main">1</span></div>
+            <div class="key key-n2"><span class="numpad-main">2</span></div>
+            <div class="key key-n3"><span class="numpad-main">3</span></div>
+            <div class="key key-n0"><span class="numpad-zero-label">Отмена</span><span class="numpad-zero-main">0</span></div>
+            <div class="key key-ndot"><span class="numpad-dot-label">Ластик</span><span class="numpad-dot-main">·</span></div>
+            <div class="key key-plus"><span class="numpad-label-top">Заметки</span><span class="plus-sign">+</span></div>
+            <div class="key key-enter-numpad"><span class="numpad-label-top">Помощь</span><span class="numpad-label-enter">Enter</span><span class="enter-arrow-numpad">↵</span></div>
+        </div>
+    </div>
+
+    <script>
+        // Функция для показа нужной версии
+        function showVersion(versionId) {
+            const versions = document.querySelectorAll('.controls-version');
+            versions.forEach(version => {
+                version.classList.remove('active');
+            });
+            const targetVersion = document.getElementById(versionId);
+            if (targetVersion) {
+                targetVersion.classList.add('active');
+                // Обновляем фон body
+                if (versionId === 'controls-dark-en' || versionId === 'controls-dark-ru') {
+                    document.body.style.backgroundColor = '#0d375e';
+                } else {
+                    document.body.style.backgroundColor = '#e8edf2';
+                }
+            }
+        }
+
+        // Функция для получения параметров из URL
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        // Определяем нужную версию по параметрам
+        const theme = getQueryParam('theme');
+        const lang = getQueryParam('lang');
+        
+        let versionId = 'controls-light-en'; // по умолчанию
+        
+        if (theme === 'dark' && lang === 'ru') versionId = 'controls-dark-ru';
+        else if (theme === 'dark' && lang === 'en') versionId = 'controls-dark-en';
+        else if (theme === 'light' && lang === 'ru') versionId = 'controls-light-ru';
+        else if (theme === 'light' && lang === 'en') versionId = 'controls-light-en';
+        
+        showVersion(versionId);
+
+        // Слушаем сообщения от родительского окна для динамического обновления
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'updateControls') {
+                const newTheme = event.data.theme;
+                const newLang = event.data.lang;
+                let newVersionId = 'controls-light-en';
+                
+                if (newTheme === 'dark' && newLang === 'ru') newVersionId = 'controls-dark-ru';
+                else if (newTheme === 'dark' && newLang === 'en') newVersionId = 'controls-dark-en';
+                else if (newTheme === 'light' && newLang === 'ru') newVersionId = 'controls-light-ru';
+                else if (newTheme === 'light' && newLang === 'en') newVersionId = 'controls-light-en';
+                
+                showVersion(newVersionId);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="description" content="Sudoku Game">
+    <title>Судоку</title>
+    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
+    <script>
+        (function() {
+            try {
+                const saved = localStorage.getItem('sudoku_settings');
+                if (saved) {
+                    const settings = JSON.parse(saved);
+                    if (settings.darkTheme) document.body.classList.add('dark-theme');
+                }
+            } catch(e) {}
+        })();
+    </script>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Pangolin&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <div id="menu" class="screen hidden">
+            <h1 data-i18n="menuTitle">Судоку</h1>
+            <div class="subtitle" data-i18n="menuSubtitle">Классика</div>
+            <span class="subtitle2" data-i18n="menuSubtitle2">Бесконечные уровни</span>
+            <div class="menu-level-display">
+                <span id="i18n-level-prefix" data-i18n="levelPrefix">Уровень:</span> <span id="menu-level">1</span>
+            </div>
+            <button id="btn-play" class="menu-primary-btn" data-i18n="btnPlay">▶ Играть</button>
+            <button id="btn-continue-save" class="menu-primary-btn hidden" data-i18n="btnContinue">▶ Продолжить</button>
+            <div class="menu-utils">
+                <button id="btn-settings" class="secondary-btn" data-i18n="btnSettings">⚙️ Настройки</button>
+                <button id="btn-controls" class="secondary-btn" data-i18n="btnControls">🎮 Управление</button>
+                <button id="btn-rules" class="secondary-btn" data-i18n="btnRules">📖 Правила</button>
+                <button id="btn-info" class="secondary-btn" data-i18n="btnInfo">ℹ️ Информация</button>
+            </div>
+            <button id="btn-lang-toggle" class="lang-btn"><span class="flag-icon">🇷🇺</span> RU</button>
+            <div class="footer-credit">by Pandatramp</div>
+        </div>
+
+        <div id="game" class="screen hidden">
+            <div class="top-bar">
+                <div class="level-stats"><span>⏱ <span id="timer">00:00</span></span></div>
+                <div class="level-display"><span data-i18n="levelPrefix">Уровень:</span> <span id="level-num">1</span></div>
+                <button id="btn-home" class="icon-btn">☰</button>
+            </div>
+            <div class="game-area">
+                <div id="board-container"><div id="board" class="board"></div></div>
+            </div>
+            <div class="controls-area">
+                <div id="numpad" class="numpad">
+                    <button data-num="1">1</button><button data-num="2">2</button><button data-num="3">3</button>
+                    <button data-num="4">4</button><button data-num="5">5</button><button data-num="6">6</button>
+                    <button data-num="7">7</button><button data-num="8">8</button><button data-num="9">9</button>
+                    <button class="btn-erase" data-num="0"><img src="images/Eraser.png" alt="Erase"></button>
+                </div>
+                <div class="bottom-actions">
+                    <button id="btn-notes" class="secondary-btn toggle-btn">📝 <span data-i18n="notesLabel">Заметки</span></button>
+                    <button id="btn-hint" class="secondary-btn">💡 <span data-i18n="hintLabel">Помощь</span><span class="hint-counter-wrapper"> (<span id="hint-counter">3</span>)</span></button>
+                    <button id="btn-undo" class="secondary-btn">↩️ <span data-i18n="undoLabel">Отмена</span></button>
+                </div>
+            </div>
+        </div>
+
+        <div id="win-screen" class="screen overlay hidden">
+            <div class="modal">
+                <div class="win-header"><div class="win-emoji">🎉</div><h2 data-i18n="winTitle">Уровень пройден!</h2></div>
+                <p><span data-i18n="winTime">Время:</span> <span id="win-time">00:00</span></p>
+                <button id="btn-next" class="primary-btn" style="width:100%" data-i18n="winNext">Следующий уровень</button>
+            </div>
+        </div>
+
+        <div id="pause-modal" class="modal-overlay overlay hidden">
+            <div class="pause-menu slide-in">
+                <h2 data-i18n="pauseTitle">Пауза</h2>
+                <button id="btn-continue" class="primary-btn" data-i18n="pauseContinue">▶ Продолжить</button>
+                <button id="btn-restart" class="secondary-btn" data-i18n="pauseRestart">🔄 Перезагрузить уровень</button>
+                <div class="pause-divider"></div>
+                <button id="btn-settings-pause" class="secondary-btn" data-i18n="pauseSettings">⚙️ Настройки</button>
+                <button id="btn-controls-pause" class="secondary-btn" data-i18n="pauseControls">🎮 Управление</button>
+                <button id="btn-rules-pause" class="secondary-btn" data-i18n="pauseRules">📖 Правила</button>
+                <button id="btn-info-pause" class="secondary-btn" data-i18n="pauseInfo">ℹ️ Информация</button>
+                <div class="pause-divider"></div>
+                <button id="btn-exit-menu" class="secondary-btn" data-i18n="pauseExit">🚪 На стартовый экран</button>
+            </div>
+        </div>
+
+        <div id="settings-modal" class="modal-overlay overlay hidden">
+            <div class="pause-menu slide-in">
+                <h2 data-i18n="settingsTitle">⚙️ Настройки</h2>
+                <div class="setting-item"><span class="setting-label" data-i18n="settingMusic">🎵 Музыка</span><label class="toggle-switch"><input type="checkbox" id="toggle-music" checked><span class="slider"></span></label></div>
+                <div class="volume-row"><input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5"></div>
+                <div class="setting-item"><span class="setting-label" data-i18n="settingSFX">🔊 Звуки</span><label class="toggle-switch"><input type="checkbox" id="toggle-sfx" checked><span class="slider"></span></label></div>
+                <div class="volume-row"><input type="range" id="sfx-volume-slider" min="0" max="1" step="0.1" value="0.5"></div>
+                <div class="setting-item"><span class="setting-label" data-i18n="settingHighlight">✨ Подсветка</span><label class="toggle-switch"><input type="checkbox" id="toggle-highlight" checked><span class="slider"></span></label></div>
+                <div class="setting-item"><span class="setting-label" data-i18n="settingDark">🌙 Тёмная тема</span><label class="toggle-switch"><input type="checkbox" id="toggle-dark-theme"><span class="slider"></span></label></div>
+                <button id="btn-settings-back" class="primary-btn" data-i18n="settingDone">✓ Готово</button>
+            </div>
+        </div>
+
+        <div id="rules-modal" class="modal-overlay overlay hidden">
+            <div class="pause-menu slide-in">
+                <h2 data-i18n="rulesTitle">📖 Правила</h2>
+                <div class="info-content" id="rules-content"></div>
+                <button id="btn-rules-back" class="primary-btn" data-i18n="rulesBack">⬅ В меню</button>
+            </div>
+        </div>
+
+        <div id="info-modal" class="modal-overlay overlay hidden">
+            <div class="pause-menu slide-in">
+                <h2 data-i18n="infoTitle">ℹ️ Информация</h2>
+                <div class="info-content" id="info-content"></div>
+                <button id="btn-info-back" class="primary-btn" data-i18n="infoBack">⬅ В меню</button>
+            </div>
+        </div>
+
+        <div id="controls-modal" class="modal-overlay overlay hidden">
+            <div class="controls-box-image slide-in">
+                <h2 data-i18n="controlsTitle">🎮 Управление</h2>
+                <iframe id="controls-iframe" src="controls.html"></iframe>
+                <button id="btn-controls-back" class="primary-btn" data-i18n="controlsBack">⬅ В меню</button>
+            </div>
+        </div>
+
+        <div id="restart-confirm-modal" class="modal-overlay overlay hidden">
+            <div class="modal slide-in">
+                <h2 data-i18n="restartTitle">Перезапуск уровня</h2>
+                <p class="modal-text" data-i18n="restartText">Начать уровень заново?<br>Весь текущий прогресс и заметки будут потеряны.</p>
+                <div class="restart-actions">
+                    <button id="btn-restart-yes" class="secondary-btn" data-i18n="restartYes">🔄 Да</button>
+                    <button id="btn-restart-no" class="secondary-btn" data-i18n="restartNo">❌ Нет</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="hint-confirm-modal" class="modal-overlay overlay hidden">
+            <div class="modal slide-in">
+                <h2 data-i18n="hintTitle">Помощь</h2>
+                <p class="modal-text" data-i18n="hintText">Использовать одну подсказку?<br>Осталось: <span id="hint-modal-counter">3</span></p>
+                <div class="restart-actions">
+                    <button id="btn-hint-yes" class="secondary-btn" data-i18n="hintYes">✅ Да</button>
+                    <button id="btn-hint-no" class="secondary-btn" data-i18n="hintNo">❌ Нет</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="hint-ad-confirm-modal" class="modal-overlay overlay hidden">
+            <div class="modal slide-in">
+                <h2 data-i18n="hintAdTitle">Подсказка за рекламу</h2>
+                <p class="modal-text" data-i18n="hintAdText">У вас не осталось подсказок.<br>Добавить подсказку за просмотр рекламы?</p>
+                <div class="restart-actions">
+                    <button id="btn-hint-ad-yes" class="secondary-btn" data-i18n="hintAdYes">✅ Да</button>
+                    <button id="btn-hint-ad-no" class="secondary-btn" data-i18n="hintAdNo">❌ Нет</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ✅ Скрытое окно отладки уровня (обновлённое) -->
+        <div id="debug-level-modal" class="modal-overlay overlay hidden">
+            <div class="modal slide-in">
+                <h2 data-i18n="debugTitle">Переход на уровень</h2>
+                <div class="debug-controls">
+                    <button type="button" id="debug-minus" class="debug-arrow secondary-btn">−</button>
+                    <input type="number" id="debug-level-input" class="debug-input" min="1">
+                    <button type="button" id="debug-plus" class="debug-arrow secondary-btn">+</button>
+                </div>
+                <div class="debug-actions">
+                    <button id="debug-level-go" class="secondary-btn" data-i18n="debugGo">✅ Перейти</button>
+                    <button id="debug-level-cancel" class="secondary-btn" data-i18n="debugCancel">❌ Отмена</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="js/sudoku.js"></script>
+    <script src="js/vk-sdk.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>
