@@ -1,28 +1,9 @@
 {
-  "name": "Судоку: Классика",
+  "name": "Судоку",
   "short_name": "Судоку",
-  "description": "Классическая судоку с заметками, подсказками и адаптивным дизайном. Решайте головоломки на любом устройстве!",
-  "start_url": "./index.html",
+  "start_url": "index.html",
   "display": "standalone",
-  "orientation": "any",
   "background_color": "#f5f7fa",
   "theme_color": "#2196f3",
-  "lang": "ru",
-  "dir": "ltr",
-  "categories": ["puzzle", "games", "education"],
-  "icons": [
-    {
-      "src": "icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ],
-  "screenshots": []
+  "icons": []
 }

@@ -135,7 +135,7 @@ body.dark-theme .cell.error { background: #b71c1c !important; color: #ffcdd2 !im
 #pause-modal { z-index: 200; }
 #settings-modal { z-index: 500 !important; }
 #info-modal, #rules-modal, #controls-modal { z-index: 400; overflow: hidden; }
-#restart-confirm-modal, #hint-confirm-modal, #hint-ad-confirm-modal { z-index: 450; }
+#restart-confirm-modal, #hint-confirm-modal, #hint-buy-modal, #hint-ad-confirm-modal { z-index: 450; }
 
 #win-screen { z-index: 300; display: flex; align-items: center; justify-content: center; }
 #btn-next { margin: 8px 0 !important; }

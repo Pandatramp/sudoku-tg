@@ -20,9 +20,10 @@ window.Game = {
       hintYes: "✅ Да", hintNo: "❌ Нет", winTitle: "Уровень пройден!", winTime: "Время:", winNext: "Следующий уровень",
       notesLabel: "Заметки", hintLabel: "Помощь", undoLabel: "Отмена", alertNoHints: "⚠️ Подсказки закончились!", levelPrefix: "Уровень:",
       menuTitle: "Судоку", menuSubtitle: "Классика", menuSubtitle2: "Бесконечные Уровни",
-      hintAdTitle: "Подсказка за рекламу", 
-      hintAdText: "У вас не осталось подсказок.<br>Добавить подсказку за просмотр рекламы?", 
-      hintAdYes: "✅ Да", hintAdNo: "❌ Нет",
+      hintBuyTitle: "Подсказка за звезду",
+      hintBuyText: "Бесплатные подсказки закончились.<br>Купить одну подсказку за 1⭐?",
+      hintBuyYes: "✅ Да",
+      hintBuyNo: "❌ Нет",
       debugTitle: "Переход на уровень", debugGo: "✅ Перейти", debugCancel: "❌ Отмена"
     },
     en: {
@@ -38,9 +39,10 @@ window.Game = {
       hintYes: "✅ Yes", hintNo: "❌ No", winTitle: "Level Completed!", winTime: "Time:", winNext: "Next Level",
       notesLabel: "Notes", hintLabel: "Hint", undoLabel: "Undo", alertNoHints: "⚠️ No hints left!", levelPrefix: "Level:",
       menuTitle: "Sudoku", menuSubtitle: "Classic", menuSubtitle2: "Infinite Levels",
-      hintAdTitle: "Hint for Ad",
-      hintAdText: "No hints left.<br>Watch an ad to get one?",
-      hintAdYes: "✅ Yes", hintAdNo: "❌ No",
+      hintBuyTitle: "Hint for Star",
+      hintBuyText: "No free hints left.<br>Buy one hint for 1⭐?",
+      hintBuyYes: "✅ Yes",
+      hintBuyNo: "❌ No",
       debugTitle: "Go to Level", debugGo: "✅ Go", debugCancel: "❌ Cancel"
     }
   },
@@ -76,6 +78,19 @@ window.Game = {
     this.bindEvents();
     this.showMenu();
 
+    // ✅ Восстанавливаем количество подсказок из сохранённой игры
+    const savedGame = localStorage.getItem('sudoku_saved_game');
+    if (savedGame) {
+      try {
+        const gs = JSON.parse(savedGame);
+        // ✅ Используем !== undefined, чтобы 0 не превращался в 3
+        if (gs && gs.hintsAvailable !== undefined) {
+          this.state.hintsAvailable = gs.hintsAvailable;
+          this.updateHintUI();
+        }
+      } catch(e) {}
+    }
+
     document.body.classList.add('loaded');
 
     this.initAudio();
@@ -90,14 +105,12 @@ window.Game = {
         this.stopTimer();
         this.updateGameplayAPI(false);
       } else {
-        // ✅ Возвращаем музыку и таймер ТОЛЬКО если SDK не держит игру на паузе
         if (!this._sdkPaused) {
           if (this.state.musicEnabled) { 
             if (this.audioCtx && this.audioCtx.state === 'suspended') {
               this.audioCtx.resume().catch(() => {});
             }
             
-            // ✅ Небольшая задержка + проверка
             setTimeout(() => { 
               if (this.state.musicEnabled && !this.bgmSource && this.screens.menu.classList.contains('hidden')) {
                 this.playBGM(); 
@@ -110,7 +123,6 @@ window.Game = {
               this.screens.win.classList.contains('hidden')) {
             this.startTimer();
           }
-        } else {
         }
       }
     };
@@ -121,9 +133,8 @@ window.Game = {
   },
 
   cacheDOM() {
-    this.screens = { menu: document.getElementById('menu'), game: document.getElementById('game'), win: document.getElementById('win-screen'), pause: document.getElementById('pause-modal'), settings: document.getElementById('settings-modal'), rules: document.getElementById('rules-modal'), info: document.getElementById('info-modal'), controls: document.getElementById('controls-modal'), restartConfirm: document.getElementById('restart-confirm-modal'), hintConfirm: document.getElementById('hint-confirm-modal'), hintAdConfirm: document.getElementById('hint-ad-confirm-modal') };
+    this.screens = { menu: document.getElementById('menu'), game: document.getElementById('game'), win: document.getElementById('win-screen'), pause: document.getElementById('pause-modal'), settings: document.getElementById('settings-modal'), rules: document.getElementById('rules-modal'), info: document.getElementById('info-modal'), controls: document.getElementById('controls-modal'), restartConfirm: document.getElementById('restart-confirm-modal'), hintConfirm: document.getElementById('hint-confirm-modal'), hintBuy: document.getElementById('hint-buy-modal') };
     this.els = { menuLevel: document.getElementById('menu-level'), levelNum: document.getElementById('level-num'), board: document.getElementById('board'), timer: document.getElementById('timer'), winTime: document.getElementById('win-time'), btnNotes: document.getElementById('btn-notes'), btnHint: document.getElementById('btn-hint'), hintCounter: document.getElementById('hint-counter'), hintModalCounter: document.getElementById('hint-modal-counter'), toggleMusic: document.getElementById('toggle-music'), toggleSFX: document.getElementById('toggle-sfx'), musicVolumeSlider: document.getElementById('volume-slider'), sfxVolumeSlider: document.getElementById('sfx-volume-slider'), toggleHighlight: document.getElementById('toggle-highlight'), toggleDarkTheme: document.getElementById('toggle-dark-theme'), langToggle: document.getElementById('btn-lang-toggle') };
-    
     this.debugModal = document.getElementById('debug-level-modal');
     this.debugInput = document.getElementById('debug-level-input');
     this.debugGoBtn = document.getElementById('debug-level-go');
@@ -303,7 +314,7 @@ window.Game = {
     const vh = window.innerHeight, maxH = vh * 0.88;
     const modals = [
       { id: 'pause-modal', sel: '.pause-menu' }, { id: 'settings-modal', sel: '.pause-menu' }, { id: 'rules-modal', sel: '.pause-menu' }, { id: 'info-modal', sel: '.pause-menu' },
-      { id: 'restart-confirm-modal', sel: '.modal' }, { id: 'hint-confirm-modal', sel: '.modal' }, { id: 'hint-ad-confirm-modal', sel: '.modal' },
+      { id: 'restart-confirm-modal', sel: '.modal' }, { id: 'hint-confirm-modal', sel: '.modal' }, 
       { id: 'debug-level-modal', sel: '.modal' }
     ];
     modals.forEach(({ id, sel }) => {
@@ -346,7 +357,7 @@ window.Game = {
     this.stopTimer(); this.state.isPaused = false; 
     this.screens.menu.classList.remove('hidden'); this.screens.game.classList.add('hidden'); this.screens.win.classList.add('hidden'); this.screens.pause.classList.add('hidden');
     this.screens.settings.classList.add('hidden'); this.screens.rules.classList.add('hidden'); this.screens.info.classList.add('hidden');
-    this.screens.controls.classList.add('hidden'); this.screens.restartConfirm.classList.add('hidden'); this.screens.hintConfirm.classList.add('hidden'); this.screens.hintAdConfirm.classList.add('hidden');
+    this.screens.controls.classList.add('hidden'); this.screens.restartConfirm.classList.add('hidden'); this.screens.hintConfirm.classList.add('hidden');
     if (this.debugModal) this.debugModal.classList.add('hidden');
     this.els.menuLevel.textContent = this.state.level; this.checkSavedGame(); setTimeout(() => this.autoScale(), 50);
     
@@ -355,7 +366,7 @@ window.Game = {
   },
   showGame() {
     this.screens.menu.classList.add('hidden'); this.screens.game.classList.remove('hidden'); this.screens.win.classList.add('hidden'); this.screens.pause.classList.add('hidden'); this.screens.settings.classList.add('hidden');
-    this.screens.rules.classList.add('hidden'); this.screens.info.classList.add('hidden'); this.screens.controls.classList.add('hidden'); this.screens.restartConfirm.classList.add('hidden'); this.screens.hintConfirm.classList.add('hidden'); this.screens.hintAdConfirm.classList.add('hidden');
+    this.screens.rules.classList.add('hidden'); this.screens.info.classList.add('hidden'); this.screens.controls.classList.add('hidden'); this.screens.restartConfirm.classList.add('hidden'); this.screens.hintConfirm.classList.add('hidden'); 
     if (this.debugModal) this.debugModal.classList.add('hidden');
     setTimeout(() => this.autoScale(), 50);
   },
@@ -558,16 +569,9 @@ window.Game = {
       this.clearSavedGame();
       this.saveProgress();
       PlatformAPI.saveProgress(this.state.level);
-      PlatformAPI.sendLeaderboardScore(this.state.level);
-
       const wasMusicPlaying = this.state.musicEnabled && !!this.bgmSource;
       if (wasMusicPlaying) this.stopBGM();
-
-      // Показываем интерстишиал ВК
-      await PlatformAPI.showInterstitial();
-
       this.startLevel();
-
       if (wasMusicPlaying && this.state.musicEnabled) this.playBGM();
     });
     
@@ -638,8 +642,8 @@ window.Game = {
     document.getElementById('btn-restart-no').addEventListener('click', () => this.hideRestartModal());
     document.getElementById('btn-hint-yes').addEventListener('click', () => this.confirmPaidHint());
     document.getElementById('btn-hint-no').addEventListener('click', () => this.hideHintModal());
-    document.getElementById('btn-hint-ad-yes').addEventListener('click', () => this.confirmHintAd());
-    document.getElementById('btn-hint-ad-no').addEventListener('click', () => this.hideHintAdModal());
+    document.getElementById('btn-hint-buy-yes').addEventListener('click', () => this.buyHintForStar());
+    document.getElementById('btn-hint-buy-no').addEventListener('click', () => this.hideHintBuyModal());
     document.getElementById('btn-lang-toggle').addEventListener('click', () => this.toggleLanguage());
 
     document.addEventListener('click', (e) => {
@@ -651,9 +655,9 @@ window.Game = {
         { id: 'pause-modal', fn: () => this.hidePauseMenu() },
         { id: 'restart-confirm-modal', fn: () => this.hideRestartModal() },
         { id: 'hint-confirm-modal', fn: () => this.hideHintModal() },
-        { id: 'hint-ad-confirm-modal', fn: () => this.hideHintAdModal() },
         { id: 'controls-modal', fn: () => this.hideControlsModal() },
-        { id: 'debug-level-modal', fn: () => this.hideDebugLevelModal() }
+        { id: 'debug-level-modal', fn: () => this.hideDebugLevelModal() },
+        { id: 'hint-buy-modal', fn: () => this.hideHintBuyModal() }
       ];
       for (const m of modals) { if (target.id === m.id) { m.fn(); return; } }
     });
@@ -742,13 +746,13 @@ window.Game = {
     if (key === 'escape') {
       e.preventDefault();
       if (!this.screens.hintConfirm.classList.contains('hidden')) { this.hideHintModal(); return; }
-      if (!this.screens.hintAdConfirm.classList.contains('hidden')) { this.hideHintAdModal(); return; }
       if (!this.screens.restartConfirm.classList.contains('hidden')) { this.hideRestartModal(); return; }
       if (!this.screens.controls.classList.contains('hidden')) { this.hideControlsModal(); return; }
       if (!this.screens.info.classList.contains('hidden')) { this.hideInfoModal(); return; }
       if (!this.screens.rules.classList.contains('hidden')) { this.hideRulesModal(); return; }
       if (!this.screens.settings.classList.contains('hidden')) { this.hideSettingsModal(); return; }
       if (!this.screens.pause.classList.contains('hidden')) { this.hidePauseMenu(); return; }
+      if (!this.screens.hintBuy.classList.contains('hidden')) { this.hideHintBuyModal(); return; }
       if (this.debugModal && !this.debugModal.classList.contains('hidden')) { this.hideDebugLevelModal(); return; }
       if (!this.screens.game.classList.contains('hidden')) { 
         if (this.state.selectedCell) { 
@@ -763,7 +767,6 @@ window.Game = {
     
     // Обработка Enter в модальных окнах
     if ((key === 'enter') && !this.screens.hintConfirm.classList.contains('hidden')) { e.preventDefault(); this.confirmPaidHint(); return; }
-    if ((key === 'enter') && !this.screens.hintAdConfirm.classList.contains('hidden')) { e.preventDefault(); this.confirmHintAd(); return; }
     if ((key === 'enter') && this.debugModal && !this.debugModal.classList.contains('hidden')) { e.preventDefault(); this.debugGoBtn.click(); return; }
     
     const isGameActive = !this.screens.game.classList.contains('hidden') && !this.state.isPaused;
@@ -822,45 +825,59 @@ window.Game = {
   hideSettingsModal() { this.screens.settings.classList.add('hidden'); },
   showRestartModal() { this.screens.restartConfirm.classList.remove('hidden'); setTimeout(() => this.autoScale(), 50); },
   hideRestartModal() { this.screens.restartConfirm.classList.add('hidden'); },
-  showHintAdModal() { this.screens.hintAdConfirm.classList.remove('hidden'); setTimeout(() => this.autoScale(), 50); },
-  hideHintAdModal() { this.screens.hintAdConfirm.classList.add('hidden'); },
   
-  showHintModal() { 
-    if (this.state.hintsAvailable <= 0) { this.showHintAdModal(); return; }
-    const counterEl = document.getElementById('hint-modal-counter');
-    if(counterEl) counterEl.textContent = this.state.hintsAvailable;
-    this.screens.hintConfirm.classList.remove('hidden'); setTimeout(() => this.autoScale(), 50); 
-  }, 
-  hideHintModal() { this.screens.hintConfirm.classList.add('hidden'); },
-  
-  confirmRestart() {
-    this.hideRestartModal();
-    if (window.YandexSDK) {
-      window.YandexSDK.adv.showFullscreenAdv({
-        callbacks: {
-          onClose: () => {
-            this.clearSavedGame();
-            this.startLevel();
-            this.updateGameplayAPI(true);
-          }
-        }
-      });
-    } else {
-      this.clearSavedGame();
-      this.startLevel();
-      this.updateGameplayAPI(true);
+  showHintModal() {
+    if (this.state.hintsAvailable <= 0) {
+      // Бесплатные кончились — показываем окно подтверждения покупки
+      this.showHintBuyConfirm();
+      return;
     }
+    const counterEl = document.getElementById('hint-modal-counter');
+    if (counterEl) counterEl.textContent = this.state.hintsAvailable;
+    this.screens.hintConfirm.classList.remove('hidden');
+    setTimeout(() => this.autoScale(), 50);
   },
 
+  hideHintModal() {
+    this.screens.hintConfirm.classList.add('hidden');
+  },
+
+  showHintBuyConfirm() {
+    const counterEl = document.getElementById('hint-modal-counter');
+    if (counterEl) counterEl.textContent = this.state.hintsAvailable;
+    this.screens.hintBuy.classList.remove('hidden');
+    setTimeout(() => this.autoScale(), 50);
+  },
+
+  hideHintBuyModal() {
+    this.screens.hintBuy.classList.add('hidden');
+  },
+
+  // Покупка подсказки за 1 Star (после подтверждения)
+  async buyHintForStar() {
+    const result = await PlatformAPI.buyHint();
+    
+    if (result.success) {
+      this.useHint();
+      this.saveGameState();
+    }
+  },
+  
   async confirmRestart() {
     this.hideRestartModal();
     this.clearSavedGame();
-    await PlatformAPI.showInterstitial();
     this.startLevel();
   },
 
-  confirmPaidHint() { if (this.state.hintsAvailable > 0) { this.state.hintsAvailable--; this.updateHintUI(); this.hideHintModal(); this.useHint(); this.saveGameState(); } },
-  
+  confirmPaidHint() { 
+    if (this.state.hintsAvailable > 0) { 
+      this.state.hintsAvailable--; 
+      this.updateHintUI(); 
+      this.hideHintModal(); 
+      this.useHint(); 
+      this.saveGameState(); // ✅ Сохраняем состояние после использования подсказки
+    } 
+  },
   updateHintUI() { 
     this.els.hintCounter.textContent = this.state.hintsAvailable;
     this.els.btnHint.style.opacity = '1'; this.els.btnHint.style.pointerEvents = 'auto'; 
@@ -875,7 +892,17 @@ window.Game = {
 
   saveGameState() { 
     if (!this.state.puzzle.length) return; 
-    const gameState = { level: this.state.level, puzzle: this.state.puzzle, solution: this.state.solution, playerBoard: this.state.playerBoard, notes: this.state.notes, timer: this.state.timer, hintsAvailable: this.state.hintsAvailable, history: this.state.history, timestamp: Date.now() };
+    const gameState = { 
+      level: this.state.level, 
+      puzzle: this.state.puzzle, 
+      solution: this.state.solution, 
+      playerBoard: this.state.playerBoard, 
+      notes: this.state.notes, 
+      timer: this.state.timer, 
+      hintsAvailable: this.state.hintsAvailable, // ✅ Это должно быть
+      history: this.state.history, 
+      timestamp: Date.now() 
+    };
     localStorage.setItem('sudoku_saved_game', JSON.stringify(gameState));
   },
 
@@ -887,17 +914,28 @@ window.Game = {
     }
     if (!gs) return;
 
-    this.state.level = gs.level; this.state.puzzle = gs.puzzle; this.state.solution = gs.solution; this.state.playerBoard = gs.playerBoard;
-    this.state.notes = gs.notes || Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => [])); 
-    this.state.timer = gs.timer; 
-    this.state.hintsAvailable = gs.hintsAvailable || 3; this.state.history = gs.history || []; this.state.selectedCell = null;
-    this.state.isPaused = false; this.state.isNotesMode = false; this.els.btnNotes.classList.remove('active'); this.updateHintUI();
+    this.state.level = gs.level;
+    this.state.puzzle = gs.puzzle;
+    this.state.solution = gs.solution;
+    this.state.playerBoard = gs.playerBoard;
+    this.state.notes = gs.notes || Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => []));
+    this.state.timer = gs.timer;
+    // ✅ Исправлено: используем !== undefined вместо || 3
+    this.state.hintsAvailable = gs.hintsAvailable !== undefined ? gs.hintsAvailable : 3;
+    this.state.history = gs.history || [];
+    this.state.selectedCell = null;
+    this.state.isPaused = false;
+    this.state.isNotesMode = false;
+    this.els.btnNotes.classList.remove('active');
+    this.updateHintUI();
     
-    this.renderBoard(); this.els.levelNum.textContent = this.state.level; this.els.timer.textContent = this.formatTime(this.state.timer);
+    this.renderBoard();
+    this.els.levelNum.textContent = this.state.level;
+    this.els.timer.textContent = this.formatTime(this.state.timer);
     this.showGame(); 
-    this.startTimer(); this.playBGM();
+    this.startTimer();
+    this.playBGM();
     
-    // ✅ GameplayAPI: игра загружена и активна
     this.updateGameplayAPI(true);
   },
   
