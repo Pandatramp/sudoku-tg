@@ -92,7 +92,7 @@ window.PlatformAPI = {
   
   async buyHint() {
     try {
-      const response = await fetch('https://your-backend.workers.dev/api/create-invoice', {
+      const response = await fetch('https://sudoku-bot.pandatramp.workers.dev/api/create-invoice', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
