@@ -853,13 +853,24 @@ window.Game = {
     this.screens.hintBuy.classList.add('hidden');
   },
 
-  // Покупка подсказки за 1 Star (после подтверждения)
   async buyHintForStar() {
     const result = await PlatformAPI.buyHint();
     
     if (result.success) {
+      // Оплата прошла успешно
       this.useHint();
       this.saveGameState();
+    } else if (result.cancelled) {
+      // Пользователь отменил оплату
+      const t = this.i18n[this.state.lang];
+      const message = this.state.lang === 'ru' 
+        ? '❌ Оплата отменена' 
+        : '❌ Payment cancelled';
+      PlatformAPI.showAlert(message);
+    } else if (result.failed) {
+      // Ошибка оплаты (уже показано в tg-sdk.js)
+    } else if (result.local) {
+      // Локальный режим (уже показано в tg-sdk.js)
     }
   },
   
