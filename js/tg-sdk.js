@@ -92,6 +92,8 @@ window.PlatformAPI = {
   
   async buyHint() {
     try {
+      console.log('🔄 Отправка запроса на создание invoice...');
+      
       const response = await fetch('https://sudoku-bot.pandatramp.workers.dev/api/create-invoice', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -101,20 +103,28 @@ window.PlatformAPI = {
         })
       });
       
-      const data = await response.json();
+      console.log('📥 Статус ответа:', response.status);
       
-      if (!data.url) throw new Error('Нет URL счёта');
+      const data = await response.json();
+      console.log('📦 Данные ответа:', data);
+      
+      if (!data.url) {
+        console.error('❌ В ответе нет URL:', data);
+        throw new Error(data.error || 'Нет URL счёта');
+      }
+      
+      console.log('✅ URL получен:', data.url);
       
       // Открываем окно оплаты
       return new Promise((resolve) => {
         if (!this.tg || !this.tg.openInvoice) {
-          // Фолбэк для локального теста
           this.showAlert('⚠️ Оплата недоступна в локальном режиме');
           resolve({ success: false, local: true });
           return;
         }
         
         this.tg.openInvoice(data.url, async (status) => {
+          console.log('💳 Статус оплаты:', status);
           if (status === 'paid') {
             resolve({ success: true, type: 'paid' });
           } else if (status === 'cancelled') {
@@ -125,10 +135,9 @@ window.PlatformAPI = {
           }
         });
       });
-      
     } catch (error) {
-      console.error('Ошибка покупки:', error);
-      this.showAlert('Не удалось связаться с сервером');
+      console.error('❌ Ошибка покупки:', error);
+      this.showAlert(`Ошибка: ${error.message}`);
       return { success: false, error: error.message };
     }
   },
