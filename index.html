@@ -189,5 +189,152 @@
     <script src="js/sudoku.js"></script>
     <script src="js/tg-sdk.js"></script>
     <script src="js/game.js"></script>
+    <!-- КНОПКА ДИАГНОСТИКИ ДЛЯ ТЕЛЕФОНА -->
+<button id="debugBtn" style="
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  background: #ff0000;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  font-size: 24px;
+  z-index: 99999;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(255,0,0,0.4);
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+">
+🐞
+</button>
+
+<div id="debugModal" style="
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.9);
+  z-index: 999999;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+">
+  <div style="
+    background: #1a1a1a;
+    color: #00ff00;
+    padding: 20px;
+    border-radius: 12px;
+    max-width: 95%;
+    max-height: 80%;
+    overflow: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.8;
+    border: 2px solid #00ff00;
+    width: 100%;
+  ">
+    <div id="debugContent" style="margin-bottom: 20px; white-space: pre-wrap; word-break: break-all;">Загрузка...</div>
+    <button onclick="document.getElementById('debugModal').style.display='none'" style="
+      background: #ff4444;
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+    ">✕ ЗАКРЫТЬ</button>
+  </div>
+</div>
+
+<script>
+document.getElementById('debugBtn').addEventListener('click', function() {
+  const modal = document.getElementById('debugModal');
+  const content = document.getElementById('debugContent');
+  
+  let info = '═══════════════════════════════════\n';
+  info += '  ДИАГНОСТИКА TELEGRAM WEBAPP\n';
+  info += '═══════════════════════════════════\n\n';
+  
+  // 1. Проверка Telegram
+  const hasTelegram = typeof window.Telegram !== 'undefined';
+  info += '📌 window.Telegram: ' + (hasTelegram ? '✅ ЕСТЬ' : '❌ НЕТ') + '\n';
+  
+  if (hasTelegram) {
+    const hasWebApp = !!(window.Telegram.WebApp);
+    info += '📌 Telegram.WebApp: ' + (hasWebApp ? '✅ ЕСТЬ' : '❌ НЕТ') + '\n';
+    
+    if (hasWebApp) {
+      const webApp = window.Telegram.WebApp;
+      const hasUser = !!(webApp.initDataUnsafe?.user);
+      
+      info += '📌 initData: ' + (webApp.initData ? '✅ ЕСТЬ' : '❌ НЕТ') + '\n';
+      info += '📌 initDataUnsafe: ' + (webApp.initDataUnsafe ? '✅ ЕСТЬ' : '❌ НЕТ') + '\n';
+      info += '📌 user: ' + (hasUser ? '✅ ЕСТЬ' : '❌ НЕТ') + '\n';
+      
+      if (hasUser) {
+        const user = webApp.initDataUnsafe.user;
+        info += '\n═══════════════════════════════════\n';
+        info += '  👤 ДАННЫЕ ПОЛЬЗОВАТЕЛЯ\n';
+        info += '═══════════════════════════════════\n';
+        info += '  ID: ' + (user.id || '❌') + '\n';
+        info += '  Имя: ' + (user.first_name || '❌') + '\n';
+        info += '  Username: @' + (user.username || 'нет') + '\n';
+        info += '  Язык: ' + (user.language_code || '❌') + '\n';
+        info += '  Premium: ' + (user.is_premium ? '✅' : '❌') + '\n';
+        info += '\n✅ ВСЁ РАБОТАЕТ!';
+        info += '\n💡 Игра видит Telegram WebApp';
+        info += '\n💡 Покупка подсказок должна работать';
+      } else {
+        info += '\n═══════════════════════════════════\n';
+        info += '  ❌ ОШИБКА\n';
+        info += '═══════════════════════════════════\n';
+        info += '  user не найден в initDataUnsafe!\n';
+        info += '\n  Возможные причины:\n';
+        info += '  1. Бот не настроен на WebApp\n';
+        info += '  2. Кнопка в боте не содержит web_app\n';
+        info += '  3. Игра открыта как обычная ссылка\n';
+      }
+      
+      info += '\n═══════════════════════════════════\n';
+      info += '  🔧 ТЕХНИЧЕСКИЕ ДАННЫЕ\n';
+      info += '═══════════════════════════════════\n';
+      info += '  Платформа: ' + (webApp.platform || '❌') + '\n';
+      info += '  Версия: ' + (webApp.version || '❌') + '\n';
+      info += '  Тема: ' + (webApp.colorScheme || '❌') + '\n';
+      info += '  Расширено: ' + (webApp.isExpanded ? '✅' : '❌') + '\n';
+    }
+  } else {
+    info += '\n═══════════════════════════════════\n';
+    info += '  ❌ КРИТИЧЕСКАЯ ОШИБКА\n';
+    info += '═══════════════════════════════════\n';
+    info += '  Telegram НЕ обнаружен!\n\n';
+    info += '  Это значит, что игра открыта:\n';
+    info += '  ❌ Не через WebApp\n';
+    info += '  ❌ Не через кнопку с web_app\n';
+    info += '  ❌ А как обычная веб-страница\n\n';
+    info += '  РЕШЕНИЕ:\n';
+    info += '  1. Проверьте @BotFather\n';
+    info += '  2. Настройте WebApp URL\n';
+    info += '  3. Добавьте кнопку с web_app в боте\n';
+    info += '  4. Открывайте игру через кнопку';
+  }
+  
+  info += '\n═══════════════════════════════════\n';
+  info += '  📍 ИНФОРМАЦИЯ О СТРАНИЦЕ\n';
+  info += '═══════════════════════════════════\n';
+  info += '  URL: ' + window.location.href + '\n';
+  info += '  Хост: ' + window.location.hostname + '\n';
+  
+  content.textContent = info;
+  modal.style.display = 'flex';
+});
+</script>
 </body>
 </html>
