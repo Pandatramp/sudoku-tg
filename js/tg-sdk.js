@@ -92,60 +92,50 @@ window.PlatformAPI = {
   
   async buyHint() {
     try {
-      // ✅ Получаем user_id из Telegram WebApp
-      const userId = this.tg?.initDataUnsafe?.user?.id;
-      
-      console.log('🔍 Telegram WebApp data:', {
-        tg: !!this.tg,
-        initDataUnsafe: this.tg?.initDataUnsafe,
-        user: this.tg?.initDataUnsafe?.user,
-        userId: userId
-      });
-      
-      if (!userId) {
-        console.error('❌ user_id не найден в initDataUnsafe');
-        this.showAlert('⚠️ Игра должна быть запущена через Telegram');
+      // Проверка наличия данных пользователя
+      const hasTg = !!this.tg;
+      const hasInitData = !!this.tg?.initDataUnsafe;
+      const hasUser = !!this.tg?.initDataUnsafe?.user;
+
+      if (!hasUser) {
+        // Показываем детальную ошибку прямо в игре
+        const msg = `❌ Ошибка: no_user_id\n\n` +
+          `📱 Telegram SDK: ${hasTg ? '✅' : '❌'}\n` +
+          `🔑 initDataUnsafe: ${hasInitData ? '✅' : '❌'}\n` +
+          `👤 user: ${hasUser ? '✅' : '❌'}\n\n` +
+          `💡 Откройте игру через бота в Telegram!\n` +
+          `(Не через браузер по прямой ссылке)`;
+        
+        this.showAlert(msg);
         return { success: false, error: 'no_user_id' };
       }
-      
-      console.log('🔄 Отправка запроса на создание invoice для user_id:', userId);
-      
+
+      const userId = this.tg.initDataUnsafe.user.id;
+      console.log('🆔 User ID получен:', userId);
+
       const response = await fetch('https://sudoku-bot.pandatramp.workers.dev/api/create-invoice', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: userId,
-          stars: 1
-        })
+        body: JSON.stringify({ user_id: userId, stars: 1 })
       });
-      
-      console.log('📥 Статус ответа:', response.status);
-      
+
       const data = await response.json();
-      console.log('📦 Данные ответа:', data);
-      
-      if (!data.url) {
-        console.error('❌ В ответе нет URL:', data);
-        throw new Error(data.error || 'Нет URL счёта');
-      }
-      
-      console.log('✅ URL получен:', data.url);
-      
-      // Открываем окно оплаты
+      if (!data.url) throw new Error(data.error || 'Нет URL счёта');
+
+      console.log('✅ Invoice URL:', data.url);
+
       return new Promise((resolve) => {
-        if (!this.tg || !this.tg.openInvoice) {
-          this.showAlert('⚠️ Оплата недоступна в локальном режиме');
+        if (!this.tg.openInvoice) {
+          this.showAlert('⚠️ Оплата недоступна в этом клиенте');
           resolve({ success: false, local: true });
           return;
         }
-        
-        this.tg.openInvoice(data.url, async (status) => {
-          console.log('💳 Статус оплаты:', status);
-          if (status === 'paid') {
-            resolve({ success: true, type: 'paid' });
-          } else if (status === 'cancelled') {
-            resolve({ success: false, cancelled: true });
-          } else {
+
+        this.tg.openInvoice(data.url, (status) => {
+          console.log('💳 Payment status:', status);
+          if (status === 'paid') resolve({ success: true, type: 'paid' });
+          else if (status === 'cancelled') resolve({ success: false, cancelled: true });
+          else {
             this.showAlert('Ошибка оплаты');
             resolve({ success: false, failed: true });
           }
@@ -153,7 +143,7 @@ window.PlatformAPI = {
       });
     } catch (error) {
       console.error('❌ Ошибка покупки:', error);
-      this.showAlert(`Ошибка: ${error.message}`);
+      this.showAlert(`❌ Ошибка: ${error.message}`);
       return { success: false, error: error.message };
     }
   },
