@@ -166,16 +166,56 @@ window.PlatformAPI = {
   // ==================== ПОЛУЧЕНИЕ ID ПОЛЬЗОВАТЕЛЯ ====================
   
   getUserId() {
-    // ✅ Если уже есть в кеше - возвращаем
-    if (this._userId) {
-      console.log('✅ Используем кешированный ID:', this._userId);
-      return this._userId;
+  // Если уже есть — возвращаем
+  if (this._userId) {
+    console.log('✅ Используем кешированный ID:', this._userId);
+    return this._userId;
+  }
+  
+  console.log('🔍 Пытаемся получить user_id...');
+  
+  try {
+    // Прямой доступ к WebApp
+    const webApp = window.Telegram?.WebApp;
+    console.log('📱 WebApp:', webApp);
+    
+    if (webApp) {
+      // Проверяем initDataUnsafe
+      if (webApp.initDataUnsafe?.user?.id) {
+        const id = webApp.initDataUnsafe.user.id;
+        console.log('✅ ID из initDataUnsafe.user:', id);
+        this._userId = id;
+        return id;
+      }
+      
+      // Если нет, пробуем из initData
+      if (webApp.initData) {
+        console.log('📝 Пробуем парсить initData...');
+        const params = new URLSearchParams(webApp.initData);
+        const userJson = params.get('user');
+        if (userJson) {
+          const user = JSON.parse(decodeURIComponent(userJson));
+          if (user.id) {
+            console.log('✅ ID из initData:', user.id);
+            this._userId = user.id;
+            return id;
+          }
+        }
+      }
     }
     
-    // ✅ Пытаемся получить заново
-    this._userId = this.extractUserId();
-    return this._userId;
-  },
+    console.warn('❌ Не удалось получить ID');
+    console.log('🔍 window.Telegram:', window.Telegram);
+    console.log('🔍 WebApp:', webApp);
+    console.log('🔍 initDataUnsafe:', webApp?.initDataUnsafe);
+    console.log('🔍 user:', webApp?.initDataUnsafe?.user);
+    
+    return null;
+  } catch (e) {
+    console.error('❌ Ошибка получения user_id:', e);
+    return null;
+  }
+},
   
   // ==================== ПОКУПКА ПОДСКАЗКИ ЗА ЗВЕЗДУ ====================
   

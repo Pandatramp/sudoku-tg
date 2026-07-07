@@ -7,6 +7,44 @@
     <title>Судоку</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
+  // Проверка при загрузке
+  setTimeout(function() {
+    const webApp = window.Telegram?.WebApp;
+    const user = webApp?.initDataUnsafe?.user;
+    const userId = user?.id || null;
+    
+    // Создаём большую заметку на экране
+    const status = document.createElement('div');
+    status.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 999999;
+      background: ${userId ? '#22c55e' : '#ef4444'};
+      color: white;
+      padding: 30px 40px;
+      border-radius: 16px;
+      font-weight: bold;
+      font-size: 20px;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      max-width: 90%;
+    `;
+    status.textContent = userId 
+      ? `✅ Пользователь найден!\nID: ${userId}\nИмя: ${user.first_name || 'Игрок'}` 
+      : '❌ Ошибка: Telegram не видит пользователя\n\nОткройте игру через бота!';
+    document.body.appendChild(status);
+    
+    // Через 5 секунд скрываем
+    setTimeout(() => {
+      status.style.opacity = '0';
+      status.style.transition = 'opacity 1s';
+      setTimeout(() => status.remove(), 1000);
+    }, 5000);
+  }, 2000);
+</script>
+    <script>
         (function() {
             try {
                 const saved = localStorage.getItem('sudoku_settings');
