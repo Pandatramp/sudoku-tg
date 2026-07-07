@@ -273,6 +273,23 @@
     }, 1000);
   });
 </script>
+<script>
+  // Принудительная загрузка Telegram WebApp SDK
+  (function() {
+    const script = document.createElement('script');
+    script.src = 'https://telegram.org/js/telegram-web-app.js';
+    script.onload = function() {
+      console.log('✅ Telegram SDK загружен через JS');
+      alert('SDK загружен: ' + (typeof window.Telegram !== 'undefined'));
+    };
+    script.onerror = function() {
+      console.error('❌ Не удалось загрузить Telegram SDK');
+      alert('Ошибка загрузки SDK');
+    };
+    document.head.appendChild(script);
+  })();
+</script>
+</body>
 </body>
 </body>
 </html>
