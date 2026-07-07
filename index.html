@@ -258,37 +258,28 @@
     <script src="js/tg-sdk.js"></script>
     <script src="js/game.js"></script>
     <script>
-  // Ждем полной загрузки страницы
-  window.addEventListener('load', function() {
-    setTimeout(function() {
-      const hasTg = typeof window.Telegram !== 'undefined';
-      const hasWebApp = hasTg && typeof window.Telegram.WebApp !== 'undefined';
-      
-      alert(
-        'Диагностика SDK:\n' +
-        '1. window.Telegram: ' + hasTg + '\n' +
-        '2. window.Telegram.WebApp: ' + hasWebApp + '\n' +
-        '3. initData (первые 50 символов): ' + (hasWebApp ? window.Telegram.WebApp.initData.substring(0, 50) : 'НЕТ')
-      );
-    }, 1000);
-  });
-</script>
-<script>
   // Принудительная загрузка Telegram WebApp SDK
   (function() {
+    console.log('Загрузка Telegram SDK...');
     const script = document.createElement('script');
     script.src = 'https://telegram.org/js/telegram-web-app.js';
     script.onload = function() {
-      console.log('✅ Telegram SDK загружен через JS');
-      alert('SDK загружен: ' + (typeof window.Telegram !== 'undefined'));
+      console.log('✅ Telegram SDK загружен');
+      // Переинициализируем PlatformAPI после загрузки SDK
+      if (window.PlatformAPI && window.Telegram && window.Telegram.WebApp) {
+        window.PlatformAPI.init().then(() => {
+          console.log('✅ PlatformAPI переинициализирован');
+        });
+      }
     };
     script.onerror = function() {
       console.error('❌ Не удалось загрузить Telegram SDK');
-      alert('Ошибка загрузки SDK');
+      alert('Ошибка загрузки Telegram SDK');
     };
     document.head.appendChild(script);
   })();
 </script>
+</body>
 </body>
 </body>
 </body>
