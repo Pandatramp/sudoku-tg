@@ -257,5 +257,22 @@
     <script src="js/sudoku.js"></script>
     <script src="js/tg-sdk.js"></script>
     <script src="js/game.js"></script>
+    <script>
+  // Ждем полной загрузки страницы
+  window.addEventListener('load', function() {
+    setTimeout(function() {
+      const hasTg = typeof window.Telegram !== 'undefined';
+      const hasWebApp = hasTg && typeof window.Telegram.WebApp !== 'undefined';
+      
+      alert(
+        'Диагностика SDK:\n' +
+        '1. window.Telegram: ' + hasTg + '\n' +
+        '2. window.Telegram.WebApp: ' + hasWebApp + '\n' +
+        '3. initData (первые 50 символов): ' + (hasWebApp ? window.Telegram.WebApp.initData.substring(0, 50) : 'НЕТ')
+      );
+    }, 1000);
+  });
+</script>
+</body>
 </body>
 </html>
