@@ -4,6 +4,7 @@
 window.PlatformAPI = {
   initialized: false,
   tg: null,
+  _userId: null, // ✅ Кешируем ID после первого получения
   
   // ==================== ИНИЦИАЛИЗАЦИЯ ====================
   
@@ -15,7 +16,10 @@ window.PlatformAPI = {
       this.initialized = true;
       console.log('✅ Telegram SDK готов');
       
-      // ✅ Сохраняем язык при инициализации
+      // ✅ Сразу получаем и кешируем ID
+      this._userId = this.extractUserId();
+      console.log('👤 User ID:', this._userId);
+      
       const lang = this.tg.initDataUnsafe?.user?.language_code || 'ru';
       window.detectedLang = lang;
       
@@ -24,6 +28,73 @@ window.PlatformAPI = {
     console.warn('⚠️ Telegram WebApp не найден, работа в локальном режиме');
     window.detectedLang = 'ru';
     return 'ru';
+  },
+  
+  // ==================== РАСШИРЕННОЕ ПОЛУЧЕНИЕ ID ====================
+  
+  extractUserId() {
+    console.log('🔍 Попытка получить ID пользователя...');
+    
+    // Способ 1: initDataUnsafe (самый прямой)
+    if (this.tg?.initDataUnsafe?.user?.id) {
+      const id = this.tg.initDataUnsafe.user.id;
+      console.log('✅ Способ 1 (initDataUnsafe):', id);
+      return id;
+    }
+    
+    // Способ 2: парсинг initData
+    if (this.tg?.initData) {
+      try {
+        console.log('📝 initData:', this.tg.initData);
+        const params = new URLSearchParams(this.tg.initData);
+        const userJson = params.get('user');
+        if (userJson) {
+          console.log('📝 userJson:', userJson);
+          const user = JSON.parse(decodeURIComponent(userJson));
+          if (user.id) {
+            console.log('✅ Способ 2 (initData парсинг):', user.id);
+            return user.id;
+          }
+        }
+      } catch (e) {
+        console.error('❌ Ошибка парсинга initData:', e);
+      }
+    }
+    
+    // Способ 3: параметры URL (для WebApp в iframe)
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tgWebAppData = urlParams.get('tgWebAppData');
+      console.log('📝 tgWebAppData из URL:', tgWebAppData ? 'есть' : 'нет');
+      
+      if (tgWebAppData) {
+        const params = new URLSearchParams(tgWebAppData);
+        const userJson = params.get('user');
+        if (userJson) {
+          const user = JSON.parse(decodeURIComponent(userJson));
+          if (user.id) {
+            console.log('✅ Способ 3 (URL параметры):', user.id);
+            return user.id;
+          }
+        }
+      }
+    } catch (e) {
+      console.error('❌ Ошибка парсинга URL:', e);
+    }
+    
+    // Способ 4: WebApp.initDataUnsafe (альтернативный доступ)
+    try {
+      if (window.Telegram?.WebApp?.initDataUnsafe?.user?.id) {
+        const id = window.Telegram.WebApp.initDataUnsafe.user.id;
+        console.log('✅ Способ 4 (window.Telegram):', id);
+        return id;
+      }
+    } catch (e) {
+      console.error('❌ Ошибка доступа к window.Telegram:', e);
+    }
+    
+    console.warn('❌ Не удалось получить ID пользователя ни одним способом');
+    return null;
   },
   
   // ==================== ОБЛАЧНОЕ ХРАНИЛИЩЕ ====================
@@ -64,7 +135,7 @@ window.PlatformAPI = {
     return localLevel ? parseInt(localLevel) : 1;
   },
   
-  // ==================== БЕСПЛАТНЫЕ ПОДСКАЗКИ (3 шт на уровень) ====================
+  // ==================== БЕСПЛАТНЫЕ ПОДСКАЗКИ ====================
   
   async getFreeHints() {
     const value = await this.cloudLoad('free_hints', '3');
@@ -95,77 +166,68 @@ window.PlatformAPI = {
   // ==================== ПОЛУЧЕНИЕ ID ПОЛЬЗОВАТЕЛЯ ====================
   
   getUserId() {
-    // 1. Прямой доступ
-    if (this.tg?.initDataUnsafe?.user?.id) {
-      return this.tg.initDataUnsafe.user.id;
+    // ✅ Если уже есть в кеше - возвращаем
+    if (this._userId) {
+      console.log('✅ Используем кешированный ID:', this._userId);
+      return this._userId;
     }
     
-    // 2. Парсинг initData
-    if (this.tg?.initData) {
-      try {
-        const params = new URLSearchParams(this.tg.initData);
-        const userJson = params.get('user');
-        if (userJson) {
-          const user = JSON.parse(decodeURIComponent(userJson));
-          if (user.id) return user.id;
-        }
-      } catch (e) {
-        console.error('Ошибка парсинга initData:', e);
-      }
-    }
-    
-    // 3. Если игра открыта через iframe (Telegram Web)
-    try {
-      const urlParams = new URLSearchParams(window.location.search);
-      const tgWebAppData = urlParams.get('tgWebAppData');
-      if (tgWebAppData) {
-        const params = new URLSearchParams(tgWebAppData);
-        const userJson = params.get('user');
-        if (userJson) {
-          const user = JSON.parse(decodeURIComponent(userJson));
-          if (user.id) return user.id;
-        }
-      }
-    } catch (e) {
-      console.error('Ошибка парсинга URL:', e);
-    }
-    
-    // 4. Локальный режим
-    return null;
+    // ✅ Пытаемся получить заново
+    this._userId = this.extractUserId();
+    return this._userId;
   },
   
-  // ==================== ПОКУПКА ОДНОЙ ПОДСКАЗКИ ЗА 1 STAR ====================
+  // ==================== ПОКУПКА ПОДСКАЗКИ ЗА ЗВЕЗДУ ====================
   
   async buyHint() {
     try {
-      // ✅ Получаем ID через отдельный метод
+      // ✅ Получаем ID
       const userId = this.getUserId();
       
-      // ❌ Если ID нет — показываем сообщение и выходим
       if (!userId) {
-        // ✅ Используем showAlert для красивой ошибки
-        this.showAlert(
-          '⚠️ Не удалось определить пользователя.\n\n' +
-          'Пожалуйста, откройте игру заново через бота.\n' +
+        console.error('❌ Не удалось получить ID пользователя');
+        
+        // ❌ Показываем детальную ошибку для диагностики
+        const debugInfo = [
+          '⚠️ Не удалось определить пользователя.',
+          '',
+          'Техническая информация:',
+          `- Telegram WebApp: ${this.initialized ? '✅ есть' : '❌ нет'}`,
+          `- initData: ${this.tg?.initData ? '✅ есть' : '❌ нет'}`,
+          `- initDataUnsafe: ${this.tg?.initDataUnsafe ? '✅ есть' : '❌ нет'}`,
+          `- user: ${this.tg?.initDataUnsafe?.user ? '✅ есть' : '❌ нет'}`,
+          '',
+          'Пожалуйста, откройте игру заново через бота.',
           'Если ошибка повторяется, напишите разработчику.'
-        );
+        ].join('\n');
+        
+        this.showAlert(debugInfo);
         return { success: false, error: 'no_user_id' };
       }
 
-      console.log('✅ User ID:', userId);
+      console.log('✅ Пользователь ID:', userId);
+      console.log('📤 Отправка запроса на создание инвойса...');
 
-      // ✅ Отправляем запрос с ID
+      // ✅ Отправляем запрос
       const response = await fetch('https://sudoku-bot.pandatramp.workers.dev/api/create-invoice', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: userId, stars: 1 })
+        body: JSON.stringify({ 
+          user_id: userId, 
+          stars: 1 
+        })
       });
 
+      console.log('📥 Статус ответа:', response.status);
+
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const errorText = await response.text();
+        console.error('❌ Ошибка сервера:', errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
 
       const data = await response.json();
+      console.log('📥 Ответ сервера:', data);
       
       if (!data.url) {
         throw new Error(data.error || 'Нет URL счёта');
@@ -179,8 +241,13 @@ window.PlatformAPI = {
           return;
         }
         
+        console.log('💰 Открываем инвойс...');
+        
         this.tg.openInvoice(data.url, (status) => {
+          console.log('💳 Статус оплаты:', status);
+          
           if (status === 'paid') {
+            this.showAlert('✅ Подсказка куплена!');
             resolve({ success: true, type: 'paid' });
           } else if (status === 'cancelled') {
             resolve({ success: false, cancelled: true });
@@ -191,7 +258,7 @@ window.PlatformAPI = {
         });
       });
     } catch (error) {
-      console.error('Ошибка покупки:', error);
+      console.error('❌ Ошибка покупки:', error);
       this.showAlert(`❌ Ошибка: ${error.message}`);
       return { success: false, error: error.message };
     }
