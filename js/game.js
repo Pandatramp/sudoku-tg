@@ -59,9 +59,17 @@ window.Game = {
     this.loadSettings();
     await PlatformAPI.init();
 
+    PlatformAPI.setLanguage(this.state.lang);
+
+      // ✅ Синхронизируем язык с PlatformAPI
+    if (this.state.lang) {
+      PlatformAPI.setLanguage(this.state.lang);
+    }
+
     if (window.detectedLang) {
       this.state.lang = window.detectedLang;
       localStorage.setItem('sudoku_lang', window.detectedLang);
+      PlatformAPI.setLanguage(window.detectedLang); // ✅ Добавлено
     }
 
     window.addEventListener('vkThemeChange', (e) => {
@@ -810,8 +818,13 @@ window.Game = {
     this.els.langToggle.innerHTML = `<img src="${flagSrc}" class="flag-icon" alt="Flag"> ${text}`;
     document.documentElement.lang = this.state.lang; this.updateControlsVisibility();
   },
-  toggleLanguage() { this.state.lang = this.state.lang === 'ru' ? 'en' : 'ru'; localStorage.setItem('sudoku_lang', this.state.lang); this.updateLanguageUI(); this.updateControlsVisibility(); },
-
+  toggleLanguage() {
+    this.state.lang = this.state.lang === 'ru' ? 'en' : 'ru';
+    localStorage.setItem('sudoku_lang', this.state.lang);
+    PlatformAPI.setLanguage(this.state.lang); // ✅ Уже есть
+    this.updateLanguageUI();
+    this.updateControlsVisibility();
+  },
   showRulesModal() { this.screens.rules.classList.remove('hidden'); setTimeout(() => this.autoScale(), 50); this.updateControlsVisibility(); },
   hideRulesModal() { this.screens.rules.classList.add('hidden'); },
   showInfoModal() { this.screens.info.classList.remove('hidden'); setTimeout(() => this.autoScale(), 50); },

@@ -1,6 +1,46 @@
 window.PlatformAPI = {
   initialized: false,
   tg: null,
+  lang: 'ru',
+
+  translations: {
+    ru: {
+      noUserId: '⚠️ Не удалось получить ID пользователя.\nВозможно вы зашли в приложение с включенным прокси.\nЕсли без прокси ТГ не работает, то попробуйте зайти из под VPN',
+      paymentUnavailable: '⚠️ Оплата недоступна',
+      paymentError: '❌ Ошибка оплаты. Попробуйте позже.',
+      errorPrefix: '❌ Ошибка: ',
+      invoiceNotFound: 'Нет URL счёта',
+      buyHintTitle: 'Подсказка за звезду',
+      buyHintText: 'Бесплатные подсказки закончились.\nКупить одну подсказку за 1⭐?',
+      buyHintYes: '✅ Купить за 1⭐',
+      buyHintNo: '❌ Нет'
+    },
+    en: {
+      noUserId: '⚠️ Failed to get user ID.\nYou might have accessed the app with a proxy enabled.\n If Telegram doesnt work without a proxy, try using a VPN.',
+      paymentUnavailable: '⚠️ Payment is not available',
+      paymentError: '❌ Payment error. Please try again.',
+      errorPrefix: '❌ Error: ',
+      invoiceNotFound: 'No invoice URL',
+      buyHintTitle: 'Hint for Star',
+      buyHintText: 'No free hints left.\nBuy one hint for 1⭐?',
+      buyHintYes: '✅ Buy for 1⭐',
+      buyHintNo: '❌ No'
+    }
+  },
+
+  getLanguage() {
+    return this.lang;
+  },
+
+  setLanguage(lang) {
+    this.lang = lang === 'en' ? 'en' : 'ru';
+    console.log('🌍 PlatformAPI язык:', this.lang);
+  },
+
+  t(key) {
+    const dict = this.translations[this.lang] || this.translations.ru;
+    return dict[key] || key;
+  },
 
   async init() {
     if (window.Telegram && window.Telegram.WebApp) {
@@ -9,7 +49,8 @@ window.PlatformAPI = {
       this.tg.expand();
       this.initialized = true;
 
-      // Фолбэк: парсим initData напрямую
+      this.lang = this.tg.initDataUnsafe?.user?.language_code || 'ru';
+
       if (!this.tg.initDataUnsafe?.user && this.tg.initData) {
         try {
           const params = new URLSearchParams(this.tg.initData);
@@ -18,14 +59,17 @@ window.PlatformAPI = {
             const user = JSON.parse(decodeURIComponent(userJson));
             if (!this.tg.initDataUnsafe) this.tg.initDataUnsafe = {};
             this.tg.initDataUnsafe.user = user;
+            if (!this.lang || this.lang === 'ru') {
+              this.lang = user.language_code || 'ru';
+            }
           }
         } catch (e) {
-          console.error('Ошибка парсинга initData:', e);
+          // Тихо игнорируем
         }
       }
 
-      console.log('✅ Telegram SDK готов, user:', this.tg.initDataUnsafe?.user);
-      return this.tg.initDataUnsafe?.user?.language_code || 'ru';
+      console.log('✅ Telegram SDK готов, язык:', this.lang);
+      return this.lang;
     }
     console.warn('⚠️ Telegram WebApp не найден, работа в локальном режиме');
     return 'ru';
@@ -100,12 +144,13 @@ window.PlatformAPI = {
             userId = user.id;
           }
         } catch (e) {
-          console.error('Ошибка парсинга initData:', e);
+          // Тихо игнорируем
         }
       }
 
       if (!userId) {
-        this.showAlert('⚠️ Не удалось получить ID пользователя.\nОткройте игру заново через бота.');
+        // ✅ Используем перевод
+        this.showAlert(this.t('noUserId'));
         return { success: false, error: 'no_user_id' };
       }
 
@@ -118,28 +163,29 @@ window.PlatformAPI = {
       });
 
       const data = await response.json();
-      if (!data.url) throw new Error(data.error || 'Нет URL счёта');
+      if (!data.url) throw new Error(this.t('invoiceNotFound'));
 
       console.log('✅ Invoice URL:', data.url);
 
       return new Promise((resolve) => {
         if (!this.tg || !this.tg.openInvoice) {
-          this.showAlert('⚠️ Оплата недоступна');
+          this.showAlert(this.t('paymentUnavailable'));
           resolve({ success: false, local: true });
           return;
         }
+
         this.tg.openInvoice(data.url, (status) => {
           if (status === 'paid') resolve({ success: true, type: 'paid' });
           else if (status === 'cancelled') resolve({ success: false, cancelled: true });
           else {
-            this.showAlert('Ошибка оплаты');
+            this.showAlert(this.t('paymentError'));
             resolve({ success: false, failed: true });
           }
         });
       });
     } catch (error) {
       console.error('Ошибка покупки:', error);
-      this.showAlert('Ошибка: ' + error.message);
+      this.showAlert(this.t('errorPrefix') + error.message);
       return { success: false, error: error.message };
     }
   },
