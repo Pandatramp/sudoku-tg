@@ -92,13 +92,29 @@ window.PlatformAPI = {
   
   async buyHint() {
     try {
-      console.log('🔄 Отправка запроса на создание invoice...');
+      // ✅ Получаем user_id из Telegram WebApp
+      const userId = this.tg?.initDataUnsafe?.user?.id;
+      
+      console.log('🔍 Telegram WebApp data:', {
+        tg: !!this.tg,
+        initDataUnsafe: this.tg?.initDataUnsafe,
+        user: this.tg?.initDataUnsafe?.user,
+        userId: userId
+      });
+      
+      if (!userId) {
+        console.error('❌ user_id не найден в initDataUnsafe');
+        this.showAlert('⚠️ Игра должна быть запущена через Telegram');
+        return { success: false, error: 'no_user_id' };
+      }
+      
+      console.log('🔄 Отправка запроса на создание invoice для user_id:', userId);
       
       const response = await fetch('https://sudoku-bot.pandatramp.workers.dev/api/create-invoice', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_id: this.tg?.initDataUnsafe?.user?.id,
+          user_id: userId,
           stars: 1
         })
       });
