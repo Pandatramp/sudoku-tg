@@ -48,7 +48,6 @@ window.Game = {
   },
 
   async init() {
-    
     this.sounds = {};
     this.bgmOffset = 0;
     this.bgmStartTime = 0;
@@ -61,7 +60,6 @@ window.Game = {
 
     PlatformAPI.setLanguage(this.state.lang);
 
-      // ✅ Синхронизируем язык с PlatformAPI
     if (this.state.lang) {
       PlatformAPI.setLanguage(this.state.lang);
     }
@@ -69,7 +67,7 @@ window.Game = {
     if (window.detectedLang) {
       this.state.lang = window.detectedLang;
       localStorage.setItem('sudoku_lang', window.detectedLang);
-      PlatformAPI.setLanguage(window.detectedLang); // ✅ Добавлено
+      PlatformAPI.setLanguage(window.detectedLang);
     }
 
     window.addEventListener('vkThemeChange', (e) => {
@@ -82,7 +80,14 @@ window.Game = {
     });
 
     this.updateLanguageUI();
+    
+    // ✅ 1. СНАЧАЛА ЗАГРУЖАЕМ УРОВЕНЬ ИЗ ОБЛАКА (синхронно, с await)
+    await this.loadLevelFromCloudOnStart();
+    
+    // ✅ 2. ПОТОМ ПРОВЕРЯЕМ СОХРАНЕНИЕ ДЛЯ КНОПКИ "ПРОДОЛЖИТЬ"
     this.checkSavedGame();
+    
+    // ✅ 3. ПОТОМ ПРИВЯЗЫВАЕМ СОБЫТИЯ И ПОКАЗЫВАЕМ МЕНЮ
     this.bindEvents();
     this.showMenu();
 
@@ -91,7 +96,6 @@ window.Game = {
     if (savedGame) {
       try {
         const gs = JSON.parse(savedGame);
-        // ✅ Используем !== undefined, чтобы 0 не превращался в 3
         if (gs && gs.hintsAvailable !== undefined) {
           this.state.hintsAvailable = gs.hintsAvailable;
           this.updateHintUI();
@@ -107,7 +111,6 @@ window.Game = {
     this.initAutoScale();
 
     const handleTabVisibility = () => {
-      
       if (document.hidden) {
         if (this.state.musicEnabled) this.stopBGM();
         this.stopTimer();
@@ -137,7 +140,6 @@ window.Game = {
 
     document.addEventListener('visibilitychange', handleTabVisibility);
     document.addEventListener('webkitvisibilitychange', handleTabVisibility);
-    
   },
 
   cacheDOM() {
@@ -376,14 +378,72 @@ window.Game = {
     this.screens.hintConfirm.classList.add('hidden');
     if (this.debugModal) this.debugModal.classList.add('hidden');
     
-    // ✅ СНАЧАЛА ЗАГРУЖАЕМ УРОВЕНЬ ИЗ СОХРАНЕНИЯ
-    this.loadLevelAndShow();
+    // ✅ Просто показываем уже загруженный уровень
+    if (this.els && this.els.menuLevel) {
+      this.els.menuLevel.textContent = this.state.level;
+    }
     
     this.checkSavedGame();
     setTimeout(() => this.autoScale(), 50);
     this.updateGameplayAPI(true);
   },
-
+  // ✅ НОВАЯ ФУНКЦИЯ: загрузка уровня из облака ПРИ СТАРТЕ
+  async loadLevelFromCloudOnStart() {
+    console.log('☁️ Загрузка уровня из облака при старте...');
+    
+    // 1. Сначала проверяем локальное (быстро)
+    const local = localStorage.getItem('sudoku_saved_game');
+    let localLevel = null;
+    let localTimestamp = 0;
+    
+    if (local) {
+      try {
+        const parsed = JSON.parse(local);
+        const gs = parsed.data || parsed;
+        if (gs && gs.level) {
+          localLevel = gs.level;
+          localTimestamp = parsed.timestamp || 0;
+          console.log('📁 Локальный уровень:', localLevel, 'timestamp:', localTimestamp);
+        }
+      } catch (e) {}
+    }
+    
+    // 2. Загружаем из облака
+    try {
+      const result = await PlatformAPI.cloudLoadWithTimestamp('sudoku_saved_game');
+      if (result && result.data && result.data.level) {
+        const cloudLevel = result.data.level;
+        const cloudTimestamp = result.timestamp || 0;
+        console.log('☁️ Облачный уровень:', cloudLevel, 'timestamp:', cloudTimestamp);
+        
+        // 3. Сравниваем: если облако новее или локального нет — обновляем
+        if (!localLevel || cloudTimestamp > localTimestamp) {
+          this.state.level = cloudLevel;
+          console.log('✅ Уровень загружен из облака:', cloudLevel);
+          
+          // Обновляем локальное
+          const localData = {
+            data: result.data,
+            timestamp: cloudTimestamp
+          };
+          localStorage.setItem('sudoku_saved_game', JSON.stringify(localData));
+          localStorage.setItem('sudoku_level', cloudLevel);
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('⚠️ Ошибка загрузки из облака:', e);
+    }
+    
+    // 4. Если облако не дало результат — используем локальное
+    if (localLevel) {
+      this.state.level = localLevel;
+      console.log('📁 Используем локальный уровень:', localLevel);
+    } else {
+      this.state.level = 1;
+      console.log('ℹ️ Нет сохранений, уровень по умолчанию: 1');
+    }
+  },
   // ✅ НОВАЯ ФУНКЦИЯ: загружаем уровень и показываем
   async loadLevelAndShow() {
     // 1. Сначала пробуем локальное сохранение (быстро)
