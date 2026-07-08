@@ -362,19 +362,14 @@ window.Game = {
   },
 
   showMenu() {
-    this.stopTimer();
-    this.state.isPaused = false;
-    this.screens.menu.classList.remove('hidden');
-    // ... остальные скрытия/показы ...
+    this.stopTimer(); this.state.isPaused = false; 
+    this.screens.menu.classList.remove('hidden'); this.screens.game.classList.add('hidden'); this.screens.win.classList.add('hidden'); this.screens.pause.classList.add('hidden');
+    this.screens.settings.classList.add('hidden'); this.screens.rules.classList.add('hidden'); this.screens.info.classList.add('hidden');
+    this.screens.controls.classList.add('hidden'); this.screens.restartConfirm.classList.add('hidden'); this.screens.hintConfirm.classList.add('hidden');
+    if (this.debugModal) this.debugModal.classList.add('hidden');
+    this.els.menuLevel.textContent = this.state.level; this.checkSavedGame(); setTimeout(() => this.autoScale(), 50);
     
-    // Показываем текущий уровень (может быть старым, но обновится после checkCloudSaveAsync)
-    if (this.els && this.els.menuLevel) {
-      this.els.menuLevel.textContent = this.state.level;
-    }
-    
-    this.checkSavedGame(); // ← Проверяет локальное и асинхронно облако
-    
-    setTimeout(() => this.autoScale(), 50);
+    // ✅ Запуск игры (стартовый экран) = active
     this.updateGameplayAPI(true);
   },
   showGame() {
@@ -921,72 +916,47 @@ window.Game = {
         const parsed = JSON.parse(local);
         const gs = parsed.data || parsed;
         if (gs && gs.level) {
-          // ✅ Обновляем состояние и отображение
           this.state.level = gs.level;
           if (this.els && this.els.menuLevel) {
             this.els.menuLevel.textContent = gs.level;
           }
-          
           document.getElementById('btn-continue-save').classList.remove('hidden');
           document.getElementById('btn-play').classList.add('hidden');
-          console.log('✅ Кнопка "Продолжить" показана (локальное), уровень:', gs.level);
-          return;
+          return; // ← Оставляем, чтобы не вызывать облако, если есть локальное
         }
       } catch (e) {}
     }
     
-    // Проверяем облачное сохранение (асинхронно)
+    // Если локального нет — проверяем облако
     this.checkCloudSaveAsync();
     
     document.getElementById('btn-continue-save').classList.add('hidden');
     document.getElementById('btn-play').classList.remove('hidden');
-    console.log('ℹ️ Кнопка "Продолжить" скрыта');
-  },
-
-  async checkCloudSaveForButton() {
-    try {
-      const result = await PlatformAPI.cloudLoadWithTimestamp('sudoku_saved_game');
-      if (result && result.data && result.data.level) {
-        // Показываем кнопку "Продолжить"
-        document.getElementById('btn-continue-save').classList.remove('hidden');
-        document.getElementById('btn-play').classList.add('hidden');
-        console.log('✅ Кнопка "Продолжить" показана (облако)');
-      }
-    } catch (e) {
-      console.warn('⚠️ Ошибка проверки облака:', e);
-    }
   },
 
   async checkCloudSaveAsync() {
     try {
       const result = await PlatformAPI.cloudLoadWithTimestamp('sudoku_saved_game');
       if (result && result.data && result.data.level) {
-        console.log('☁️ В облаке есть сохранение, уровень:', result.data.level);
-        
-        // 1. Обновляем состояние
+        // Обновляем состояние
         this.state.level = result.data.level;
         
-        // 2. ✅ ОБНОВЛЯЕМ ОТОБРАЖЕНИЕ НА СТАРТОВОМ ЭКРАНЕ
+        // ✅ ОБНОВЛЯЕМ ОТОБРАЖЕНИЕ
         if (this.els && this.els.menuLevel) {
           this.els.menuLevel.textContent = result.data.level;
-          console.log('✅ menu-level обновлён на:', result.data.level);
         }
         
-        // 3. Показываем кнопку "Продолжить"
-        const continueBtn = document.getElementById('btn-continue-save');
-        const playBtn = document.getElementById('btn-play');
-        if (continueBtn) continueBtn.classList.remove('hidden');
-        if (playBtn) playBtn.classList.add('hidden');
+        // Показываем кнопку "Продолжить"
+        document.getElementById('btn-continue-save').classList.remove('hidden');
+        document.getElementById('btn-play').classList.add('hidden');
         
-        // 4. Сохраняем локально
+        // Сохраняем локально
         const localData = {
           data: result.data,
           timestamp: result.timestamp || 0
         };
         localStorage.setItem('sudoku_saved_game', JSON.stringify(localData));
         localStorage.setItem('sudoku_level', result.data.level);
-        
-        console.log('🔄 Облачное сохранение скопировано локально, уровень обновлён');
       }
     } catch (e) {
       console.warn('⚠️ Ошибка проверки облака:', e);
@@ -1150,44 +1120,6 @@ window.Game = {
   hideDebugLevelModal() {
     if (!this.debugModal) return;
     this.debugModal.classList.add('hidden');
-  },
-  updateMenuLevel() {
-    console.log('🔄 updateMenuLevel вызван');
-    
-    // 1. Проверяем локальное сохранение
-    const local = localStorage.getItem('sudoku_saved_game');
-    if (local) {
-      try {
-        const parsed = JSON.parse(local);
-        const gs = parsed.data || parsed;
-        if (gs && gs.level) {
-          this.state.level = gs.level;
-          if (this.els && this.els.menuLevel) {
-            this.els.menuLevel.textContent = gs.level;
-            console.log('✅ menuLevel обновлён из локального:', gs.level);
-          }
-          return;
-        }
-      } catch (e) {}
-    }
-    
-    // 2. Если локального нет — проверяем облако (асинхронно)
-    this.updateMenuLevelFromCloud();
-  },
-
-  async updateMenuLevelFromCloud() {
-    try {
-      const result = await PlatformAPI.cloudLoadWithTimestamp('sudoku_saved_game');
-      if (result && result.data && result.data.level) {
-        this.state.level = result.data.level;
-        if (this.els && this.els.menuLevel) {
-          this.els.menuLevel.textContent = result.data.level;
-          console.log('✅ menuLevel обновлён из облака:', result.data.level);
-        }
-      }
-    } catch (e) {
-      console.warn('⚠️ Ошибка загрузки из облака:', e);
-    }
   }
 };
 
