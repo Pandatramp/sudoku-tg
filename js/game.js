@@ -376,19 +376,81 @@ window.Game = {
     this.screens.hintConfirm.classList.add('hidden');
     if (this.debugModal) this.debugModal.classList.add('hidden');
     
-    // Показываем текущий уровень
-    this.els.menuLevel.textContent = this.state.level;
+    // ✅ СНАЧАЛА ЗАГРУЖАЕМ УРОВЕНЬ ИЗ СОХРАНЕНИЯ
+    this.loadLevelAndShow();
     
-    // Проверяем сохранения
     this.checkSavedGame();
-    
-    // ✅ ПРИНУДИТЕЛЬНОЕ ОБНОВЛЕНИЕ через 500 мс
-    setTimeout(() => {
-      this.forceUpdateMenuLevel();
-    }, 500);
-    
     setTimeout(() => this.autoScale(), 50);
     this.updateGameplayAPI(true);
+  },
+
+  // ✅ НОВАЯ ФУНКЦИЯ: загружаем уровень и показываем
+  async loadLevelAndShow() {
+    // 1. Сначала пробуем локальное сохранение (быстро)
+    const local = localStorage.getItem('sudoku_saved_game');
+    let levelFound = false;
+    
+    if (local) {
+      try {
+        const parsed = JSON.parse(local);
+        const gs = parsed.data || parsed;
+        if (gs && gs.level) {
+          this.state.level = gs.level;
+          if (this.els && this.els.menuLevel) {
+            this.els.menuLevel.textContent = gs.level;
+          }
+          levelFound = true;
+          console.log('✅ Уровень загружен из локального:', gs.level);
+        }
+      } catch (e) {}
+    }
+    
+    // 2. Если локального нет или оно старое — проверяем облако
+    // Но облако проверяем ВСЕГДА, чтобы обновить, если оно новее
+    try {
+      const result = await PlatformAPI.cloudLoadWithTimestamp('sudoku_saved_game');
+      if (result && result.data && result.data.level) {
+        // Проверяем, новее ли облачное сохранение
+        const cloudLevel = result.data.level;
+        const cloudTimestamp = result.timestamp || 0;
+        
+        // Получаем timestamp локального
+        let localTimestamp = 0;
+        if (local) {
+          try {
+            const parsed = JSON.parse(local);
+            localTimestamp = parsed.timestamp || 0;
+          } catch (e) {}
+        }
+        
+        // Если облако новее или локального нет — обновляем
+        if (!levelFound || cloudTimestamp > localTimestamp) {
+          this.state.level = cloudLevel;
+          if (this.els && this.els.menuLevel) {
+            this.els.menuLevel.textContent = cloudLevel;
+          }
+          console.log('✅ Уровень обновлён из облака:', cloudLevel);
+          
+          // Обновляем локальное
+          const localData = {
+            data: result.data,
+            timestamp: cloudTimestamp
+          };
+          localStorage.setItem('sudoku_saved_game', JSON.stringify(localData));
+          localStorage.setItem('sudoku_level', cloudLevel);
+        }
+      }
+    } catch (e) {
+      console.warn('⚠️ Ошибка загрузки уровня из облака:', e);
+    }
+    
+    // 3. Если уровень всё ещё не найден — оставляем this.state.level (по умолчанию 1)
+    if (!levelFound && !this.state.level) {
+      this.state.level = 1;
+      if (this.els && this.els.menuLevel) {
+        this.els.menuLevel.textContent = 1;
+      }
+    }
   },
 
   forceUpdateMenuLevel() {
