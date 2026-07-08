@@ -5,7 +5,7 @@ window.PlatformAPI = {
 
   translations: {
     ru: {
-      noUserId: '⚠️ Не удалось получить ID пользователя.\nВозможно вы зашли в приложение с включенным прокси.\nЕсли без прокси ТГ не работает, то попробуйте зайти из под VPN',
+      noUserId: '⚠️ Не удалось получить ID пользователя.\nВозможно вы зашли в приложение с включенным прокси.\nЕсли без прокси ТГ не работает, то попробуйте зайти из под VPN либо заранее купить звезды через настройки Telegram',
       paymentUnavailable: '⚠️ Оплата недоступна',
       paymentError: '❌ Ошибка оплаты. Попробуйте позже.',
       errorPrefix: '❌ Ошибка: ',
@@ -16,7 +16,7 @@ window.PlatformAPI = {
       buyHintNo: '❌ Нет'
     },
     en: {
-      noUserId: '⚠️ Failed to get user ID.\nYou might have accessed the app with a proxy enabled.\n If Telegram doesnt work without a proxy, try using a VPN.',
+      noUserId: '⚠️ Failed to get user ID.\nYou might have accessed the app with a proxy enabled.\n If Telegram doesnt work without a proxy, try using a VPN, or buy Stars in advance via Telegram settings',
       paymentUnavailable: '⚠️ Payment is not available',
       paymentError: '❌ Payment error. Please try again.',
       errorPrefix: '❌ Error: ',
@@ -95,6 +95,83 @@ window.PlatformAPI = {
         resolve(defaultValue);
       }
     });
+  },
+
+  // ==================== РАБОТА С TIMESTAMP ====================
+
+  /**
+   * Получить текущий timestamp (Unix time в миллисекундах)
+   */
+  getTimestamp() {
+    return Date.now();
+  },
+
+  /**
+   * Сохранить данные с timestamp в облако
+   * @param {string} key - ключ для сохранения
+   * @param {any} data - данные для сохранения (будут преобразованы в JSON)
+   * @param {number} timestamp - опционально, если не указан - будет использован текущий
+   */
+  async cloudSaveWithTimestamp(key, data, timestamp = null) {
+    const ts = timestamp || this.getTimestamp();
+    const payload = JSON.stringify({
+      data: data,
+      timestamp: ts
+    });
+    await this.cloudSave(key, payload);
+    return ts;
+  },
+
+  /**
+   * Загрузить данные с timestamp из облака
+   * @param {string} key - ключ для загрузки
+   * @returns {Promise<{data: any, timestamp: number} | null>} - объект с данными и timestamp или null
+   */
+  async cloudLoadWithTimestamp(key) {
+    const stored = await this.cloudLoad(key);
+    if (!stored) return null;
+    
+    try {
+      const parsed = JSON.parse(stored);
+      // Проверяем, что это наш формат (есть data и timestamp)
+      if (parsed && typeof parsed === 'object' && 'data' in parsed && 'timestamp' in parsed) {
+        return {
+          data: parsed.data,
+          timestamp: parsed.timestamp
+        };
+      }
+      // Если старый формат без timestamp — возвращаем как есть
+      return {
+        data: parsed,
+        timestamp: 0
+      };
+    } catch (e) {
+      // Если не JSON — возвращаем как строку
+      return {
+        data: stored,
+        timestamp: 0
+      };
+    }
+  },
+
+  /**
+   * Сравнить два timestamp и вернуть самое свежее
+   * @param {number} ts1 - первый timestamp
+   * @param {number} ts2 - второй timestamp
+   * @returns {number} - наибольший timestamp (самое свежее)
+   */
+  getNewestTimestamp(ts1, ts2) {
+    return Math.max(ts1 || 0, ts2 || 0);
+  },
+
+  /**
+   * Проверить, является ли первое сохранение новее второго
+   * @param {number} ts1 - первый timestamp
+   * @param {number} ts2 - второй timestamp
+   * @returns {boolean} - true если ts1 >= ts2
+   */
+  isNewer(ts1, ts2) {
+    return (ts1 || 0) >= (ts2 || 0);
   },
 
   async saveProgress(level) {
