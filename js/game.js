@@ -914,6 +914,8 @@ window.Game = {
   
   performUndo() { if (this.state.history.length === 0) return; const last = this.state.history.pop(); this.state.playerBoard = JSON.parse(JSON.stringify(last.board)); this.state.notes = JSON.parse(JSON.stringify(last.notes)); this.saveGameState(); this.renderBoard(); },
   checkSavedGame() {
+    console.log('🔍 checkSavedGame вызван');
+    
     // Проверяем локальное сохранение
     const local = localStorage.getItem('sudoku_saved_game');
     if (local) {
@@ -921,22 +923,35 @@ window.Game = {
         const parsed = JSON.parse(local);
         const gs = parsed.data || parsed;
         if (gs && gs.level) {
-          this.state.level = gs.level;
-          if (this.els && this.els.menuLevel) {
-            this.els.menuLevel.textContent = gs.level;
-          }
+          // Показываем кнопку "Продолжить"
           document.getElementById('btn-continue-save').classList.remove('hidden');
           document.getElementById('btn-play').classList.add('hidden');
-          return; // ← Оставляем, чтобы не вызывать облако, если есть локальное
+          console.log('✅ Кнопка "Продолжить" показана (локальное)');
+          return;
         }
       } catch (e) {}
     }
     
     // Если локального нет — проверяем облако
-    this.checkCloudSaveAsync();
+    this.checkCloudSaveForButton();
     
     document.getElementById('btn-continue-save').classList.add('hidden');
     document.getElementById('btn-play').classList.remove('hidden');
+    console.log('ℹ️ Кнопка "Продолжить" скрыта');
+  },
+
+  async checkCloudSaveForButton() {
+    try {
+      const result = await PlatformAPI.cloudLoadWithTimestamp('sudoku_saved_game');
+      if (result && result.data && result.data.level) {
+        // Показываем кнопку "Продолжить"
+        document.getElementById('btn-continue-save').classList.remove('hidden');
+        document.getElementById('btn-play').classList.add('hidden');
+        console.log('✅ Кнопка "Продолжить" показана (облако)');
+      }
+    } catch (e) {
+      console.warn('⚠️ Ошибка проверки облака:', e);
+    }
   },
 
   async checkCloudSaveAsync() {
@@ -1125,6 +1140,44 @@ window.Game = {
   hideDebugLevelModal() {
     if (!this.debugModal) return;
     this.debugModal.classList.add('hidden');
+  },
+  updateMenuLevel() {
+    console.log('🔄 updateMenuLevel вызван');
+    
+    // 1. Проверяем локальное сохранение
+    const local = localStorage.getItem('sudoku_saved_game');
+    if (local) {
+      try {
+        const parsed = JSON.parse(local);
+        const gs = parsed.data || parsed;
+        if (gs && gs.level) {
+          this.state.level = gs.level;
+          if (this.els && this.els.menuLevel) {
+            this.els.menuLevel.textContent = gs.level;
+            console.log('✅ menuLevel обновлён из локального:', gs.level);
+          }
+          return;
+        }
+      } catch (e) {}
+    }
+    
+    // 2. Если локального нет — проверяем облако (асинхронно)
+    this.updateMenuLevelFromCloud();
+  },
+
+  async updateMenuLevelFromCloud() {
+    try {
+      const result = await PlatformAPI.cloudLoadWithTimestamp('sudoku_saved_game');
+      if (result && result.data && result.data.level) {
+        this.state.level = result.data.level;
+        if (this.els && this.els.menuLevel) {
+          this.els.menuLevel.textContent = result.data.level;
+          console.log('✅ menuLevel обновлён из облака:', result.data.level);
+        }
+      }
+    } catch (e) {
+      console.warn('⚠️ Ошибка загрузки из облака:', e);
+    }
   }
 };
 
