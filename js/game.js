@@ -362,15 +362,68 @@ window.Game = {
   },
 
   showMenu() {
-    this.stopTimer(); this.state.isPaused = false; 
-    this.screens.menu.classList.remove('hidden'); this.screens.game.classList.add('hidden'); this.screens.win.classList.add('hidden'); this.screens.pause.classList.add('hidden');
-    this.screens.settings.classList.add('hidden'); this.screens.rules.classList.add('hidden'); this.screens.info.classList.add('hidden');
-    this.screens.controls.classList.add('hidden'); this.screens.restartConfirm.classList.add('hidden'); this.screens.hintConfirm.classList.add('hidden');
+    this.stopTimer();
+    this.state.isPaused = false;
+    this.screens.menu.classList.remove('hidden');
+    this.screens.game.classList.add('hidden');
+    this.screens.win.classList.add('hidden');
+    this.screens.pause.classList.add('hidden');
+    this.screens.settings.classList.add('hidden');
+    this.screens.rules.classList.add('hidden');
+    this.screens.info.classList.add('hidden');
+    this.screens.controls.classList.add('hidden');
+    this.screens.restartConfirm.classList.add('hidden');
+    this.screens.hintConfirm.classList.add('hidden');
     if (this.debugModal) this.debugModal.classList.add('hidden');
-    this.els.menuLevel.textContent = this.state.level; this.checkSavedGame(); setTimeout(() => this.autoScale(), 50);
     
-    // ✅ Запуск игры (стартовый экран) = active
+    // Показываем текущий уровень
+    this.els.menuLevel.textContent = this.state.level;
+    
+    // Проверяем сохранения
+    this.checkSavedGame();
+    
+    // ✅ ПРИНУДИТЕЛЬНОЕ ОБНОВЛЕНИЕ через 500 мс
+    setTimeout(() => {
+      this.forceUpdateMenuLevel();
+    }, 500);
+    
+    setTimeout(() => this.autoScale(), 50);
     this.updateGameplayAPI(true);
+  },
+
+  forceUpdateMenuLevel() {
+    // 1. Проверяем локальное сохранение
+    const local = localStorage.getItem('sudoku_saved_game');
+    if (local) {
+      try {
+        const parsed = JSON.parse(local);
+        const gs = parsed.data || parsed;
+        if (gs && gs.level) {
+          this.state.level = gs.level;
+          if (this.els && this.els.menuLevel) {
+            this.els.menuLevel.textContent = gs.level;
+          }
+          return;
+        }
+      } catch (e) {}
+    }
+    
+    // 2. Если локального нет — проверяем облако
+    this.updateMenuLevelFromCloud();
+  },
+
+  async updateMenuLevelFromCloud() {
+    try {
+      const result = await PlatformAPI.cloudLoadWithTimestamp('sudoku_saved_game');
+      if (result && result.data && result.data.level) {
+        this.state.level = result.data.level;
+        if (this.els && this.els.menuLevel) {
+          this.els.menuLevel.textContent = result.data.level;
+        }
+      }
+    } catch (e) {
+      console.warn('⚠️ Ошибка загрузки из облака:', e);
+    }
   },
   showGame() {
     this.screens.menu.classList.add('hidden'); this.screens.game.classList.remove('hidden'); this.screens.win.classList.add('hidden'); this.screens.pause.classList.add('hidden'); this.screens.settings.classList.add('hidden');
