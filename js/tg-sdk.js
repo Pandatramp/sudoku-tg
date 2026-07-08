@@ -278,20 +278,30 @@ window.PlatformAPI = {
 
   // ==================== ОБЛАЧНОЕ СОХРАНЕНИЕ ЧЕРЕЗ БОТА ====================
 
-  async cloudSaveViaBot(key, data, timestamp = null) {
+  async cloudSaveViaBot(data, timestamp = null) {
+    console.log('💾 cloudSaveViaBot вызван');
+    console.log('📊 Данные для сохранения:', data);
+    
     try {
       const userId = this.tg?.initDataUnsafe?.user?.id;
+      console.log('👤 user_id из WebApp:', userId);
+      
       if (!userId) {
         console.warn('⚠️ Нет user_id для облачного сохранения');
-        return false;
+        // ⚠️ ВРЕМЕННО: используем тестовый ID
+        console.log('🔄 Используем тестовый user_id: 123456789');
+        const testUserId = 123456789;
+        // ... продолжаем с testUserId
       }
       
       const ts = timestamp || Date.now();
+      console.log('⏱️ Timestamp:', ts);
+      
       const response = await fetch('https://sudoku-bot.pandatramp.workers.dev/api/cloud-save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_id: userId,
+          user_id: userId || 123456789,
           key: 'sudoku_saved_game',
           data: data,
           timestamp: ts
@@ -299,7 +309,7 @@ window.PlatformAPI = {
       });
       
       const result = await response.json();
-      console.log('💾 Облачное сохранение через бота:', result);
+      console.log('📥 Ответ от бота:', result);
       return result.success;
     } catch (error) {
       console.error('❌ Ошибка облачного сохранения:', error);
@@ -308,26 +318,32 @@ window.PlatformAPI = {
   },
 
   async cloudLoadViaBot() {
+    console.log('📥 cloudLoadViaBot вызван');
+    
     try {
       const userId = this.tg?.initDataUnsafe?.user?.id;
+      console.log('👤 user_id из WebApp:', userId);
+      
       if (!userId) {
         console.warn('⚠️ Нет user_id для загрузки из облака');
-        return null;
+        console.log('🔄 Используем тестовый user_id: 123456789');
       }
       
-      const response = await fetch(
-        `https://sudoku-bot.pandatramp.workers.dev/api/cloud-load?user_id=${userId}&key=sudoku_saved_game`
-      );
+      const url = `https://sudoku-bot.pandatramp.workers.dev/api/cloud-load?user_id=${userId || 123456789}&key=sudoku_saved_game`;
+      console.log('🔗 URL запроса:', url);
       
+      const response = await fetch(url);
       const result = await response.json();
-      console.log('📥 Облачная загрузка через бота:', result);
+      console.log('📥 Ответ от бота:', result);
       
       if (result.success && result.data) {
+        console.log('✅ Данные получены, уровень:', result.data.level);
         return {
           data: result.data,
           timestamp: result.timestamp || 0
         };
       }
+      console.log('ℹ️ Данных в облаке нет');
       return null;
     } catch (error) {
       console.error('❌ Ошибка загрузки из облака:', error);
