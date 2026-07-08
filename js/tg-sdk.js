@@ -75,6 +75,8 @@ window.PlatformAPI = {
     return 'ru';
   },
 
+  // ==================== ОБЛАЧНОЕ ХРАНИЛИЩЕ ====================
+
   cloudSave(key, value) {
     return new Promise((resolve) => {
       if (this.initialized) {
@@ -99,19 +101,10 @@ window.PlatformAPI = {
 
   // ==================== РАБОТА С TIMESTAMP ====================
 
-  /**
-   * Получить текущий timestamp (Unix time в миллисекундах)
-   */
   getTimestamp() {
     return Date.now();
   },
 
-  /**
-   * Сохранить данные с timestamp в облако
-   * @param {string} key - ключ для сохранения
-   * @param {any} data - данные для сохранения (будут преобразованы в JSON)
-   * @param {number} timestamp - опционально, если не указан - будет использован текущий
-   */
   async cloudSaveWithTimestamp(key, data, timestamp = null) {
     const ts = timestamp || this.getTimestamp();
     const payload = JSON.stringify({
@@ -122,56 +115,28 @@ window.PlatformAPI = {
     return ts;
   },
 
-  /**
-   * Загрузить данные с timestamp из облака
-   * @param {string} key - ключ для загрузки
-   * @returns {Promise<{data: any, timestamp: number} | null>} - объект с данными и timestamp или null
-   */
   async cloudLoadWithTimestamp(key) {
     const stored = await this.cloudLoad(key);
     if (!stored) return null;
     
     try {
       const parsed = JSON.parse(stored);
-      // Проверяем, что это наш формат (есть data и timestamp)
       if (parsed && typeof parsed === 'object' && 'data' in parsed && 'timestamp' in parsed) {
         return {
           data: parsed.data,
           timestamp: parsed.timestamp
         };
       }
-      // Если старый формат без timestamp — возвращаем как есть
       return {
         data: parsed,
         timestamp: 0
       };
     } catch (e) {
-      // Если не JSON — возвращаем как строку
       return {
         data: stored,
         timestamp: 0
       };
     }
-  },
-
-  /**
-   * Сравнить два timestamp и вернуть самое свежее
-   * @param {number} ts1 - первый timestamp
-   * @param {number} ts2 - второй timestamp
-   * @returns {number} - наибольший timestamp (самое свежее)
-   */
-  getNewestTimestamp(ts1, ts2) {
-    return Math.max(ts1 || 0, ts2 || 0);
-  },
-
-  /**
-   * Проверить, является ли первое сохранение новее второго
-   * @param {number} ts1 - первый timestamp
-   * @param {number} ts2 - второй timestamp
-   * @returns {boolean} - true если ts1 >= ts2
-   */
-  isNewer(ts1, ts2) {
-    return (ts1 || 0) >= (ts2 || 0);
   },
 
   async saveProgress(level) {
@@ -226,7 +191,6 @@ window.PlatformAPI = {
       }
 
       if (!userId) {
-        // ✅ Используем перевод
         this.showAlert(this.t('noUserId'));
         return { success: false, error: 'no_user_id' };
       }
@@ -274,178 +238,5 @@ window.PlatformAPI = {
 
   getPlayerName() {
     return this.tg?.initDataUnsafe?.user?.first_name || 'Игрок';
-  },
-
-  // ==================== ОБЛАЧНОЕ СОХРАНЕНИЕ ЧЕРЕЗ БОТА ====================
-
-  async cloudSaveViaBot(data, timestamp = null) {
-    console.log('💾 cloudSaveViaBot вызван');
-    console.log('📊 Данные для сохранения:', data);
-    
-    try {
-      const userId = this.tg?.initDataUnsafe?.user?.id;
-      console.log('👤 user_id из WebApp:', userId);
-      
-      if (!userId) {
-        console.warn('⚠️ Нет user_id для облачного сохранения');
-        // ⚠️ ВРЕМЕННО: используем тестовый ID
-        console.log('🔄 Используем тестовый user_id: 123456789');
-        const testUserId = 123456789;
-        // ... продолжаем с testUserId
-      }
-      
-      const ts = timestamp || Date.now();
-      console.log('⏱️ Timestamp:', ts);
-      
-      const response = await fetch('https://sudoku-bot.pandatramp.workers.dev/api/cloud-save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: userId || 123456789,
-          key: 'sudoku_saved_game',
-          data: data,
-          timestamp: ts
-        })
-      });
-      
-      const result = await response.json();
-      console.log('📥 Ответ от бота:', result);
-      return result.success;
-    } catch (error) {
-      console.error('❌ Ошибка облачного сохранения:', error);
-      return false;
-    }
-  },
-
-  async cloudLoadViaBot() {
-    console.log('📥 cloudLoadViaBot вызван');
-    
-    try {
-      const userId = this.tg?.initDataUnsafe?.user?.id;
-      console.log('👤 user_id из WebApp:', userId);
-      
-      if (!userId) {
-        console.warn('⚠️ Нет user_id для загрузки из облака');
-        console.log('🔄 Используем тестовый user_id: 123456789');
-      }
-      
-      const url = `https://sudoku-bot.pandatramp.workers.dev/api/cloud-load?user_id=${userId || 123456789}&key=sudoku_saved_game`;
-      console.log('🔗 URL запроса:', url);
-      
-      const response = await fetch(url);
-      const result = await response.json();
-      console.log('📥 Ответ от бота:', result);
-      
-      if (result.success && result.data) {
-        console.log('✅ Данные получены, уровень:', result.data.level);
-        return {
-          data: result.data,
-          timestamp: result.timestamp || 0
-        };
-      }
-      console.log('ℹ️ Данных в облаке нет');
-      return null;
-    } catch (error) {
-      console.error('❌ Ошибка загрузки из облака:', error);
-      return null;
-    }
-  },
-
-  // ... существующий код ...
-  
-  // ==================== ДИАГНОСТИЧЕСКИЕ МЕТОДЫ ====================
-
-  // 1. Проверка Telegram WebApp
-  checkTelegram() {
-    console.log('📱 ПРОВЕРКА TELEGRAM WEBAPP');
-    console.log('Telegram:', window.Telegram);
-    console.log('WebApp:', window.Telegram?.WebApp);
-    console.log('CloudStorage:', window.Telegram?.WebApp?.CloudStorage);
-    console.log('initDataUnsafe:', window.Telegram?.WebApp?.initDataUnsafe);
-    console.log('user:', window.Telegram?.WebApp?.initDataUnsafe?.user);
-    console.log('user.id:', window.Telegram?.WebApp?.initDataUnsafe?.user?.id);
-  },
-
-  // 2. Проверка облачного сохранения игры
-  async checkCloudSave() {
-    console.log('☁️ ПРОВЕРКА ОБЛАЧНОГО СОХРАНЕНИЯ');
-    const data = await this.cloudLoad('sudoku_saved_game');
-    console.log('☁️ Данные в облаке:', data);
-    if (data) {
-      try {
-        const parsed = JSON.parse(data);
-        console.log('📊 Распарсенные данные:', parsed);
-        console.log('📊 Уровень:', parsed.level || parsed.data?.level);
-        console.log('⏱️ Timestamp:', parsed.timestamp || parsed.data?.timestamp);
-      } catch (e) {
-        console.log('❌ Не удалось распарсить:', e);
-      }
-    } else {
-      console.log('ℹ️ В облаке нет данных');
-    }
-  },
-
-  // 3. Проверка локального сохранения
-  checkLocalSave() {
-    console.log('💾 ПРОВЕРКА ЛОКАЛЬНОГО СОХРАНЕНИЯ');
-    const local = localStorage.getItem('sudoku_saved_game');
-    console.log('💾 Локальное сохранение:', local);
-    if (local) {
-      try {
-        const parsed = JSON.parse(local);
-        console.log('📊 Локальный уровень:', parsed.level || parsed.data?.level);
-        console.log('⏱️ Timestamp:', parsed.timestamp || parsed.data?.timestamp);
-      } catch (e) {
-        console.log('❌ Ошибка парсинга локального:', e);
-      }
-    } else {
-      console.log('ℹ️ Нет локального сохранения');
-    }
-  },
-
-  // 4. Проверка cloudLoadWithTimestamp
-  async checkTimestamp() {
-    console.log('⏱️ ПРОВЕРКА cloudLoadWithTimestamp');
-    const result = await this.cloudLoadWithTimestamp('sudoku_saved_game');
-    console.log('📦 Результат cloudLoadWithTimestamp:', result);
-    if (result) {
-      console.log('📊 Данные:', result.data);
-      console.log('⏱️ Timestamp:', result.timestamp);
-    } else {
-      console.log('ℹ️ Нет данных');
-    }
-  },
-
-  // 5. Полный тест облачного хранилища
-  async testCloudStorage() {
-    console.log('🔍 ДИАГНОСТИКА ОБЛАЧНОГО ХРАНИЛИЩА');
-    console.log('====================================');
-    
-    const testKey = 'test_' + Date.now();
-    const testData = { test: 'hello', timestamp: Date.now() };
-    
-    console.log('📤 Сохраняем тестовые данные:', testData);
-    
-    try {
-      await this.cloudSave(testKey, JSON.stringify(testData));
-      console.log('✅ Сохранение выполнено');
-      
-      const loaded = await this.cloudLoad(testKey);
-      console.log('📥 Загруженные данные:', loaded);
-      
-      if (loaded === JSON.stringify(testData)) {
-        console.log('✅ Облачное хранилище РАБОТАЕТ!');
-      } else {
-        console.log('❌ Данные не совпадают!');
-      }
-      
-      await this.cloudSave(testKey, null);
-      console.log('🗑️ Тестовые данные удалены');
-      
-    } catch (error) {
-      console.error('❌ Ошибка при работе с облачным хранилищем:', error);
-    }
-    
-    console.log('====================================');
   }
 };

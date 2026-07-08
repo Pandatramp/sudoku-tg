@@ -909,106 +909,57 @@ window.Game = {
   
   performUndo() { if (this.state.history.length === 0) return; const last = this.state.history.pop(); this.state.playerBoard = JSON.parse(JSON.stringify(last.board)); this.state.notes = JSON.parse(JSON.stringify(last.notes)); this.saveGameState(); this.renderBoard(); },
   checkSavedGame() {
-    const saved = localStorage.getItem('sudoku_saved_game');
-    if (saved) { try { const gs = JSON.parse(saved); if (gs && gs.level) { document.getElementById('btn-continue-save').classList.remove('hidden'); document.getElementById('btn-play').classList.add('hidden'); return; } } catch (e) {} }
-    document.getElementById('btn-continue-save').classList.add('hidden'); document.getElementById('btn-play').classList.remove('hidden');
-  },
-
-  // Сохранение
-  async saveGameState() {
-    if (!this.state.puzzle.length) return;
-    
-    console.log('💾 СОХРАНЕНИЕ ИГРЫ');
-    console.log('📊 Текущий уровень:', this.state.level);
-    
-    const gameState = {
-      level: this.state.level,
-      puzzle: this.state.puzzle,
-      solution: this.state.solution,
-      playerBoard: this.state.playerBoard,
-      notes: this.state.notes,
-      timer: this.state.timer,
-      hintsAvailable: this.state.hintsAvailable,
-      history: this.state.history
-    };
-    
-    const timestamp = Date.now();
-    
-    // 1. Сохраняем в облако через бота
-    console.log('☁️ Сохраняем в облако через бота...');
-    const cloudResult = await PlatformAPI.cloudSaveViaBot(gameState, timestamp);
-    console.log('☁️ Результат сохранения в облако:', cloudResult);
-    
-    // 2. Сохраняем локально
-    console.log('💾 Сохраняем локально...');
-    const localData = {
-      data: gameState,
-      timestamp: timestamp
-    };
-    localStorage.setItem('sudoku_saved_game', JSON.stringify(localData));
-    
-    console.log('✅ Сохранение завершено, timestamp:', timestamp);
-  },
-
-  // Загрузка
-  async loadGameState() {
-    console.log('📥 ЗАГРУЗКА ИГРЫ');
-    
-    // 1. Пробуем загрузить из облака через бота
-    console.log('☁️ Загружаем из облака через бота...');
-    const cloudResult = await PlatformAPI.cloudLoadViaBot();
-    console.log('☁️ Результат загрузки из облака:', cloudResult);
-    
-    if (cloudResult && cloudResult.data) {
-      console.log('✅ Загружено из облака, уровень:', cloudResult.data.level);
-      console.log('⏱️ Timestamp облака:', cloudResult.timestamp);
-      
-      // Проверяем локальное сохранение
-      const local = localStorage.getItem('sudoku_saved_game');
-      let localLevel = null;
-      let localTimestamp = 0;
-      
-      if (local) {
-        try {
-          const parsed = JSON.parse(local);
-          localLevel = parsed.data?.level || parsed.level;
-          localTimestamp = parsed.timestamp || 0;
-          console.log('💾 Локальный уровень:', localLevel, 'timestamp:', localTimestamp);
-        } catch (e) {}
-      }
-      
-      // Сравниваем timestamp
-      if (cloudResult.timestamp > localTimestamp) {
-        console.log('☁️ Облако новее, загружаем из облака');
-        const gs = cloudResult.data;
-        // ... восстанавливаем состояние
-        return;
-      } else {
-        console.log('💾 Локальное новее, загружаем из localStorage');
-      }
-    }
-    
-    // 2. Если облако не дало результат — пробуем локальное
-    console.log('💾 Загружаем из localStorage...');
+    // Проверяем локальное сохранение
     const local = localStorage.getItem('sudoku_saved_game');
     if (local) {
       try {
         const parsed = JSON.parse(local);
         const gs = parsed.data || parsed;
-        console.log('✅ Загружено из localStorage, уровень:', gs.level);
-        // ... восстанавливаем состояние
-        return;
-      } catch (e) {
-        console.log('❌ Ошибка парсинга локального:', e);
-      }
+        if (gs && gs.level) {
+          document.getElementById('btn-continue-save').classList.remove('hidden');
+          document.getElementById('btn-play').classList.add('hidden');
+          console.log('✅ Кнопка "Продолжить" показана (локальное сохранение)');
+          return;
+        }
+      } catch (e) {}
     }
     
-    console.log('ℹ️ Нет сохранений');
+    // Проверяем облачное сохранение (асинхронно)
+    this.checkCloudSaveAsync();
+    
+    document.getElementById('btn-continue-save').classList.add('hidden');
+    document.getElementById('btn-play').classList.remove('hidden');
+    console.log('ℹ️ Кнопка "Продолжить" скрыта');
   },
 
-  
-  async syncGameState() {
+  async checkCloudSaveAsync() {
+    try {
+      const result = await PlatformAPI.cloudLoadWithTimestamp('sudoku_saved_game');
+      if (result && result.data && result.data.level) {
+        console.log('☁️ В облаке есть сохранение, уровень:', result.data.level);
+        document.getElementById('btn-continue-save').classList.remove('hidden');
+        document.getElementById('btn-play').classList.add('hidden');
+        
+        // Сохраняем локально
+        const localData = {
+          data: result.data,
+          timestamp: result.timestamp || 0
+        };
+        localStorage.setItem('sudoku_saved_game', JSON.stringify(localData));
+        localStorage.setItem('sudoku_level', result.data.level);
+        console.log('🔄 Облачное сохранение скопировано локально');
+      }
+    } catch (e) {
+      console.warn('⚠️ Ошибка проверки облака:', e);
+    }
+  },
+
+  // ==================== СОХРАНЕНИЕ И ЗАГРУЗКА ====================
+
+  async saveGameState() {
     if (!this.state.puzzle.length) return;
+    
+    console.log('💾 СОХРАНЕНИЕ ИГРЫ, уровень:', this.state.level);
     
     const gameState = {
       level: this.state.level,
@@ -1023,19 +974,117 @@ window.Game = {
     
     const timestamp = Date.now();
     
-    // ✅ Принудительно сохраняем в облако (перезаписываем)
-    await PlatformAPI.cloudSaveWithTimestamp('sudoku_saved_game', gameState, timestamp);
+    try {
+      // 1. Сохраняем в облако с timestamp
+      await PlatformAPI.cloudSaveWithTimestamp('sudoku_saved_game', gameState, timestamp);
+      console.log('☁️ Сохранено в облако, timestamp:', timestamp);
+    } catch (e) {
+      console.warn('⚠️ Не удалось сохранить в облако:', e);
+    }
     
-    // Обновляем локальное
+    // 2. Сохраняем локально
     const localData = {
       data: gameState,
       timestamp: timestamp
     };
     localStorage.setItem('sudoku_saved_game', JSON.stringify(localData));
     localStorage.setItem('sudoku_level', this.state.level);
-    
-    console.log('🔄 Принудительная синхронизация, уровень:', this.state.level);
+    console.log('💾 Сохранено локально');
   },
+
+  async loadGameState() {
+    console.log('📥 ЗАГРУЗКА ИГРЫ');
+    
+    let gs = null;
+    let source = null;
+    let cloudTimestamp = 0;
+    let localTimestamp = 0;
+    
+    // 1. Загружаем из облака
+    try {
+      const cloudResult = await PlatformAPI.cloudLoadWithTimestamp('sudoku_saved_game');
+      if (cloudResult && cloudResult.data) {
+        cloudTimestamp = cloudResult.timestamp || 0;
+        console.log('☁️ Облачное сохранение: уровень', cloudResult.data.level, 'timestamp:', cloudTimestamp);
+        
+        // Сохраняем как кандидата
+        if (!gs || cloudTimestamp > localTimestamp) {
+          gs = cloudResult.data;
+          source = 'cloud';
+          localTimestamp = cloudTimestamp;
+        }
+      }
+    } catch (e) {
+      console.warn('⚠️ Ошибка загрузки из облака:', e);
+    }
+    
+    // 2. Загружаем локальное
+    try {
+      const local = localStorage.getItem('sudoku_saved_game');
+      if (local) {
+        const parsed = JSON.parse(local);
+        const localData = parsed.data || parsed;
+        const localTs = parsed.timestamp || 0;
+        console.log('💾 Локальное сохранение: уровень', localData.level, 'timestamp:', localTs);
+        
+        // Если локальное новее или облака нет
+        if (!gs || localTs > cloudTimestamp) {
+          gs = localData;
+          source = 'local';
+          localTimestamp = localTs;
+        }
+      }
+    } catch (e) {
+      console.warn('⚠️ Ошибка загрузки локального:', e);
+    }
+    
+    if (!gs || !gs.level) {
+      console.log('ℹ️ Нет сохранений');
+      return;
+    }
+    
+    console.log('✅ Выбрано сохранение из', source, 'уровень:', gs.level);
+    
+    // 3. Если загрузили из облака — обновляем локальное
+    if (source === 'cloud') {
+      const localData = {
+        data: gs,
+        timestamp: cloudTimestamp
+      };
+      localStorage.setItem('sudoku_saved_game', JSON.stringify(localData));
+      localStorage.setItem('sudoku_level', gs.level);
+      console.log('🔄 Локальное сохранение обновлено из облака');
+    }
+    
+    // 4. Восстанавливаем состояние игры
+    this.state.level = gs.level;
+    this.state.puzzle = gs.puzzle;
+    this.state.solution = gs.solution;
+    this.state.playerBoard = gs.playerBoard;
+    this.state.notes = gs.notes || Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => []));
+    this.state.timer = gs.timer || 0;
+    this.state.hintsAvailable = gs.hintsAvailable !== undefined ? gs.hintsAvailable : 3;
+    this.state.history = gs.history || [];
+    this.state.selectedCell = null;
+    this.state.isPaused = false;
+    this.state.isNotesMode = false;
+    
+    this.els.btnNotes.classList.remove('active');
+    this.updateHintUI();
+    this.renderBoard();
+    this.els.levelNum.textContent = this.state.level;
+    this.els.timer.textContent = this.formatTime(this.state.timer);
+    this.showGame();
+    this.startTimer();
+    
+    if (this.state.musicEnabled) {
+      this.playBGM();
+    }
+    
+    console.log('✅ Игра загружена, уровень:', this.state.level);
+  },
+
+  
   
   clearSavedGame() { localStorage.removeItem('sudoku_saved_game'); document.getElementById('btn-continue-save').classList.add('hidden'); document.getElementById('btn-play').classList.remove('hidden'); },
   exitToMenu() { this.saveGameState(); this.hidePauseMenu(); this.showMenu(); },
