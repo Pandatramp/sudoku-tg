@@ -945,28 +945,41 @@ window.Game = {
     try {
       const result = await PlatformAPI.cloudLoadWithTimestamp('sudoku_saved_game');
       if (result && result.data && result.data.level) {
-        console.log('☁️ В облаке есть сохранение, уровень:', result.data.level);
+        const cloudLevel = result.data.level;
+        console.log('☁️ В облаке есть сохранение, уровень:', cloudLevel);
         
-        // ✅ Обновляем состояние и отображение
-        this.state.level = result.data.level;
+        // 1. Обновляем состояние игры
+        this.state.level = cloudLevel;
         
+        // 2. ✅ ОБНОВЛЯЕМ ОТОБРАЖЕНИЕ НА СТАРТОВОМ ЭКРАНЕ
         const menuLevelEl = document.getElementById('menu-level');
         if (menuLevelEl) {
-          menuLevelEl.textContent = result.data.level;
-          console.log('✅ menu-level обновлён на:', result.data.level);
+          menuLevelEl.textContent = cloudLevel;
+          console.log('✅ menu-level обновлён на:', cloudLevel);
         }
         
-        document.getElementById('btn-continue-save').classList.remove('hidden');
-        document.getElementById('btn-play').classList.add('hidden');
+        // 3. Показываем кнопку "Продолжить"
+        const continueBtn = document.getElementById('btn-continue-save');
+        const playBtn = document.getElementById('btn-play');
+        if (continueBtn) {
+          continueBtn.classList.remove('hidden');
+          console.log('✅ Кнопка "Продолжить" показана');
+        }
+        if (playBtn) {
+          playBtn.classList.add('hidden');
+        }
         
+        // 4. Сохраняем локально (для кеша)
         const localData = {
           data: result.data,
           timestamp: result.timestamp || 0
         };
         localStorage.setItem('sudoku_saved_game', JSON.stringify(localData));
-        localStorage.setItem('sudoku_level', result.data.level);
+        localStorage.setItem('sudoku_level', cloudLevel);
         
         console.log('🔄 Облачное сохранение скопировано локально, уровень обновлён');
+      } else {
+        console.log('ℹ️ В облаке нет сохранения или нет уровня');
       }
     } catch (e) {
       console.warn('⚠️ Ошибка проверки облака:', e);
