@@ -947,20 +947,18 @@ window.Game = {
       if (result && result.data && result.data.level) {
         console.log('☁️ В облаке есть сохранение, уровень:', result.data.level);
         
-        // ✅ Обновляем состояние игры
+        // ✅ Обновляем состояние и отображение
         this.state.level = result.data.level;
         
-        // ✅ Обновляем отображение на стартовом экране
         const menuLevelEl = document.getElementById('menu-level');
         if (menuLevelEl) {
           menuLevelEl.textContent = result.data.level;
+          console.log('✅ menu-level обновлён на:', result.data.level);
         }
         
-        // Показываем кнопку "Продолжить"
         document.getElementById('btn-continue-save').classList.remove('hidden');
         document.getElementById('btn-play').classList.add('hidden');
         
-        // Сохраняем локально
         const localData = {
           data: result.data,
           timestamp: result.timestamp || 0
@@ -1028,7 +1026,6 @@ window.Game = {
         cloudTimestamp = cloudResult.timestamp || 0;
         console.log('☁️ Облачное сохранение: уровень', cloudResult.data.level, 'timestamp:', cloudTimestamp);
         
-        // Сохраняем как кандидата
         if (!gs || cloudTimestamp > localTimestamp) {
           gs = cloudResult.data;
           source = 'cloud';
@@ -1048,7 +1045,6 @@ window.Game = {
         const localTs = parsed.timestamp || 0;
         console.log('💾 Локальное сохранение: уровень', localData.level, 'timestamp:', localTs);
         
-        // Если локальное новее или облака нет
         if (!gs || localTs > cloudTimestamp) {
           gs = localData;
           source = 'local';
@@ -1077,8 +1073,16 @@ window.Game = {
       console.log('🔄 Локальное сохранение обновлено из облака');
     }
     
-    // 4. Восстанавливаем состояние игры
+    // 4. ✅ Обновляем отображение уровня на стартовом экране
+    // Это нужно сделать ДО того, как покажем игру
     this.state.level = gs.level;
+    const menuLevelEl = document.getElementById('menu-level');
+    if (menuLevelEl) {
+      menuLevelEl.textContent = gs.level;
+      console.log('✅ menu-level обновлён на:', gs.level);
+    }
+    
+    // 5. Восстанавливаем состояние игры
     this.state.puzzle = gs.puzzle;
     this.state.solution = gs.solution;
     this.state.playerBoard = gs.playerBoard;
