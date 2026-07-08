@@ -914,6 +914,7 @@ window.Game = {
     document.getElementById('btn-continue-save').classList.add('hidden'); document.getElementById('btn-play').classList.remove('hidden');
   },
 
+  // Сохранение
   async saveGameState() {
     if (!this.state.puzzle.length) return;
     
@@ -930,113 +931,42 @@ window.Game = {
     
     const timestamp = Date.now();
     
-    // ✅ Сохраняем в облако с timestamp через PlatformAPI
-    await PlatformAPI.cloudSaveWithTimestamp('sudoku_saved_game', gameState, timestamp);
+    // ✅ Сохраняем через бота
+    await PlatformAPI.cloudSaveViaBot(gameState, timestamp);
     
-    // ✅ Сохраняем локально тоже с timestamp (новый формат)
+    // Локально тоже сохраняем
     const localData = {
       data: gameState,
       timestamp: timestamp
     };
     localStorage.setItem('sudoku_saved_game', JSON.stringify(localData));
-    
-    // Сохраняем уровень отдельно (для быстрого доступа)
-    await PlatformAPI.cloudSave('sudoku_level', this.state.level);
-    localStorage.setItem('sudoku_level', this.state.level);
-    
-    console.log('💾 Игра сохранена, уровень:', this.state.level, 'timestamp:', timestamp);
   },
 
+  // Загрузка
   async loadGameState() {
-    let gs = null;
-    let localTimestamp = 0;
-    let cloudTimestamp = 0;
-    let source = null;
+    // 1. Пробуем загрузить из облака через бота
+    const cloudResult = await PlatformAPI.cloudLoadViaBot();
     
-    // 1. Загружаем локальное сохранение (новый формат)
+    if (cloudResult && cloudResult.data) {
+      const gs = cloudResult.data;
+      console.log('✅ Загружено из облака через бота, уровень:', gs.level);
+      // ... восстанавливаем состояние
+      return;
+    }
+    
+    // 2. Если облако не дало результат — пробуем локальное
     const local = localStorage.getItem('sudoku_saved_game');
     if (local) {
       try {
         const parsed = JSON.parse(local);
-        // Проверяем новый формат с timestamp
-        if (parsed && parsed.data && parsed.timestamp !== undefined) {
-          gs = parsed.data;
-          localTimestamp = parsed.timestamp;
-          source = 'local';
-          console.log('📁 Локальное сохранение: уровень', gs.level, 'timestamp:', localTimestamp);
-        } else if (parsed && parsed.level) {
-          // Старый формат (без timestamp) — конвертируем
-          gs = parsed;
-          localTimestamp = 0;
-          source = 'local_old';
-          console.log('📁 Локальное сохранение (старый формат): уровень', gs.level);
-        }
-      } catch (e) {
-        console.warn('⚠️ Ошибка парсинга локального сохранения:', e);
-      }
+        const gs = parsed.data || parsed;
+        console.log('✅ Загружено из localStorage, уровень:', gs.level);
+        // ... восстанавливаем состояние
+        return;
+      } catch (e) {}
     }
     
-    // 2. Загружаем из облака с timestamp
-    const cloudResult = await PlatformAPI.cloudLoadWithTimestamp('sudoku_saved_game');
-    if (cloudResult) {
-      cloudTimestamp = cloudResult.timestamp;
-      console.log('☁️ Облачное сохранение: уровень', cloudResult.data?.level || 'нет', 'timestamp:', cloudTimestamp);
-      
-      // Если облако новее или локального нет — берем облако
-      if (!gs || cloudTimestamp > localTimestamp) {
-        gs = cloudResult.data;
-        localTimestamp = cloudTimestamp; // обновляем для сравнения
-        source = 'cloud';
-        console.log('✅ Выбрано облачное сохранение (новее)');
-      } else {
-        console.log('✅ Выбрано локальное сохранение (новее)');
-      }
-    }
-    
-    // 3. Если ничего не найдено — выходим
-    if (!gs || !gs.level) {
-      console.log('ℹ️ Нет сохранений');
-      return;
-    }
-    
-    // 4. Если загрузили из облака — обновляем локальное
-    if (source === 'cloud') {
-      const localData = {
-        data: gs,
-        timestamp: cloudTimestamp
-      };
-      localStorage.setItem('sudoku_saved_game', JSON.stringify(localData));
-      localStorage.setItem('sudoku_level', gs.level);
-      console.log('🔄 Локальное сохранение обновлено из облака');
-    }
-    
-    // 5. Восстанавливаем состояние игры
-    this.state.level = gs.level;
-    this.state.puzzle = gs.puzzle;
-    this.state.solution = gs.solution;
-    this.state.playerBoard = gs.playerBoard;
-    this.state.notes = gs.notes || Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => []));
-    this.state.timer = gs.timer || 0;
-    this.state.hintsAvailable = gs.hintsAvailable !== undefined ? gs.hintsAvailable : 3;
-    this.state.history = gs.history || [];
-    this.state.selectedCell = null;
-    this.state.isPaused = false;
-    this.state.isNotesMode = false;
-    
-    this.els.btnNotes.classList.remove('active');
-    this.updateHintUI();
-    this.renderBoard();
-    this.els.levelNum.textContent = this.state.level;
-    this.els.timer.textContent = this.formatTime(this.state.timer);
-    this.showGame();
-    this.startTimer();
-    
-    // Запускаем музыку, если была включена
-    if (this.state.musicEnabled) {
-      this.playBGM();
-    }
-    
-    console.log('✅ Игра загружена, уровень:', this.state.level, 'источник:', source);
+    console.log('ℹ️ Нет сохранений');
   },
 
   

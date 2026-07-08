@@ -276,6 +276,65 @@ window.PlatformAPI = {
     return this.tg?.initDataUnsafe?.user?.first_name || 'Игрок';
   },
 
+  // ==================== ОБЛАЧНОЕ СОХРАНЕНИЕ ЧЕРЕЗ БОТА ====================
+
+  async cloudSaveViaBot(key, data, timestamp = null) {
+    try {
+      const userId = this.tg?.initDataUnsafe?.user?.id;
+      if (!userId) {
+        console.warn('⚠️ Нет user_id для облачного сохранения');
+        return false;
+      }
+      
+      const ts = timestamp || Date.now();
+      const response = await fetch('https://sudoku-bot.pandatramp.workers.dev/api/cloud-save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: userId,
+          key: 'sudoku_saved_game',
+          data: data,
+          timestamp: ts
+        })
+      });
+      
+      const result = await response.json();
+      console.log('💾 Облачное сохранение через бота:', result);
+      return result.success;
+    } catch (error) {
+      console.error('❌ Ошибка облачного сохранения:', error);
+      return false;
+    }
+  },
+
+  async cloudLoadViaBot() {
+    try {
+      const userId = this.tg?.initDataUnsafe?.user?.id;
+      if (!userId) {
+        console.warn('⚠️ Нет user_id для загрузки из облака');
+        return null;
+      }
+      
+      const response = await fetch(
+        `https://sudoku-bot.pandatramp.workers.dev/api/cloud-load?user_id=${userId}&key=sudoku_saved_game`
+      );
+      
+      const result = await response.json();
+      console.log('📥 Облачная загрузка через бота:', result);
+      
+      if (result.success && result.data) {
+        return {
+          data: result.data,
+          timestamp: result.timestamp || 0
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('❌ Ошибка загрузки из облака:', error);
+      return null;
+    }
+  },
+
   // ... существующий код ...
   
   // ==================== ДИАГНОСТИЧЕСКИЕ МЕТОДЫ ====================
