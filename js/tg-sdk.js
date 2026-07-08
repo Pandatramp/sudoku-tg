@@ -274,5 +274,103 @@ window.PlatformAPI = {
 
   getPlayerName() {
     return this.tg?.initDataUnsafe?.user?.first_name || 'Игрок';
+  },
+
+  // ... существующий код ...
+  
+  // ==================== ДИАГНОСТИЧЕСКИЕ МЕТОДЫ ====================
+
+  // 1. Проверка Telegram WebApp
+  checkTelegram() {
+    console.log('📱 ПРОВЕРКА TELEGRAM WEBAPP');
+    console.log('Telegram:', window.Telegram);
+    console.log('WebApp:', window.Telegram?.WebApp);
+    console.log('CloudStorage:', window.Telegram?.WebApp?.CloudStorage);
+    console.log('initDataUnsafe:', window.Telegram?.WebApp?.initDataUnsafe);
+    console.log('user:', window.Telegram?.WebApp?.initDataUnsafe?.user);
+    console.log('user.id:', window.Telegram?.WebApp?.initDataUnsafe?.user?.id);
+  },
+
+  // 2. Проверка облачного сохранения игры
+  async checkCloudSave() {
+    console.log('☁️ ПРОВЕРКА ОБЛАЧНОГО СОХРАНЕНИЯ');
+    const data = await this.cloudLoad('sudoku_saved_game');
+    console.log('☁️ Данные в облаке:', data);
+    if (data) {
+      try {
+        const parsed = JSON.parse(data);
+        console.log('📊 Распарсенные данные:', parsed);
+        console.log('📊 Уровень:', parsed.level || parsed.data?.level);
+        console.log('⏱️ Timestamp:', parsed.timestamp || parsed.data?.timestamp);
+      } catch (e) {
+        console.log('❌ Не удалось распарсить:', e);
+      }
+    } else {
+      console.log('ℹ️ В облаке нет данных');
+    }
+  },
+
+  // 3. Проверка локального сохранения
+  checkLocalSave() {
+    console.log('💾 ПРОВЕРКА ЛОКАЛЬНОГО СОХРАНЕНИЯ');
+    const local = localStorage.getItem('sudoku_saved_game');
+    console.log('💾 Локальное сохранение:', local);
+    if (local) {
+      try {
+        const parsed = JSON.parse(local);
+        console.log('📊 Локальный уровень:', parsed.level || parsed.data?.level);
+        console.log('⏱️ Timestamp:', parsed.timestamp || parsed.data?.timestamp);
+      } catch (e) {
+        console.log('❌ Ошибка парсинга локального:', e);
+      }
+    } else {
+      console.log('ℹ️ Нет локального сохранения');
+    }
+  },
+
+  // 4. Проверка cloudLoadWithTimestamp
+  async checkTimestamp() {
+    console.log('⏱️ ПРОВЕРКА cloudLoadWithTimestamp');
+    const result = await this.cloudLoadWithTimestamp('sudoku_saved_game');
+    console.log('📦 Результат cloudLoadWithTimestamp:', result);
+    if (result) {
+      console.log('📊 Данные:', result.data);
+      console.log('⏱️ Timestamp:', result.timestamp);
+    } else {
+      console.log('ℹ️ Нет данных');
+    }
+  },
+
+  // 5. Полный тест облачного хранилища
+  async testCloudStorage() {
+    console.log('🔍 ДИАГНОСТИКА ОБЛАЧНОГО ХРАНИЛИЩА');
+    console.log('====================================');
+    
+    const testKey = 'test_' + Date.now();
+    const testData = { test: 'hello', timestamp: Date.now() };
+    
+    console.log('📤 Сохраняем тестовые данные:', testData);
+    
+    try {
+      await this.cloudSave(testKey, JSON.stringify(testData));
+      console.log('✅ Сохранение выполнено');
+      
+      const loaded = await this.cloudLoad(testKey);
+      console.log('📥 Загруженные данные:', loaded);
+      
+      if (loaded === JSON.stringify(testData)) {
+        console.log('✅ Облачное хранилище РАБОТАЕТ!');
+      } else {
+        console.log('❌ Данные не совпадают!');
+      }
+      
+      await this.cloudSave(testKey, null);
+      console.log('🗑️ Тестовые данные удалены');
+      
+    } catch (error) {
+      console.error('❌ Ошибка при работе с облачным хранилищем:', error);
+    }
+    
+    console.log('====================================');
   }
 };
